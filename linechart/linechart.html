@@ -133,6 +133,8 @@ exports.install = function(instance) {
 		instance.css('background-color', color);
 		chart && chart.detach();
 		chart = null;
+
+		// Refresh data
 		options.id && instance.send(options.id, 'stats');
 	};
 
