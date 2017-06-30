@@ -35,12 +35,12 @@ exports.title = 'Line chart';
 exports.icon = 'fa-line-chart';
 exports.author = 'Peter Širka';
 exports.group = 'Charts';
-exports.options = { id: null, background: '#8CC152', type: 'days', high: null, low: null, showArea: true, showPoint: true, showLine: true, smoothCurves: true, XshowLabel: true, XshowGrid: true, YshowLabel: true, YshowGrid: false, onlyInteger: true, dateFormat: 'dd.MM', formatter: '{0}', decimals: 1 };
+exports.options = { id: null, background: '#434A54', type: 'days', high: null, low: null, showArea: true, showPoint: true, showLine: true, smoothCurves: true, XshowLabel: true, XshowGrid: true, YshowLabel: true, YshowGrid: false, onlyInteger: true, dateFormat: 'dd.MM', formatter: '{0}', decimals: 1 };
 exports.version = '1.0.0';
 
 exports.install = function(instance) {
 
-	var chart;
+	var chart, backup;
 
 	instance.shade = function(color, percent) {
 		var R = parseInt(color.substring(1,3),16);
@@ -66,6 +66,8 @@ exports.install = function(instance) {
 
 		if (!instance.options.id || response.id !== instance.options.id || response.type !== 'stats')
 			return;
+
+		backup = response;
 
 		var size = instance.size;
 		var data = {};
@@ -137,6 +139,12 @@ exports.install = function(instance) {
 		// Refresh data
 		options.id && instance.send(options.id, 'stats');
 	};
+
+	instance.on('resize', function() {
+		chart && chart.detach();
+		chart = null;
+		backup && instance.emit('data', backup);
+	});
 
 	instance.make = function() {
 		instance.element.addClass('dashboardlinechart style' + instance.id);

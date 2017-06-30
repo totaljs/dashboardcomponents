@@ -11,6 +11,7 @@
 				option('showPoint', 'Show point', true);
 				option('showLine', 'Show line', true);
 				option('smoothCurves', 'No smooth curves', true);
+				option('horizontalBars', 'Horizontal bars', false);
 				option('XshowLabel', 'Axis X: Show Label', true);
 				option('XshowGrid', 'Axis X: Show Grid', true);
 				option('YshowLabel', 'Axis Y: Show Label', true);
@@ -25,22 +26,22 @@
 </script>
 
 <style type="text/css">
-	.dashboardlinechart .ct-label { font-size: 1rem; }
-	.dashboardlinechart .ct-label.ct-horizontal.ct-end { transform: translate(-50%,0); display: block; text-align: center; }
+	.dashboardbarchart .ct-label { font-size: 1rem; }
+	.dashboardbarchart .ct-label.ct-horizontal.ct-end { transform: translate(-50%,0); display: block; text-align: center; }
 </style>
 
 <script>
-exports.name = 'linechart';
-exports.title = 'Line chart';
-exports.icon = 'fa-line-chart';
+exports.name = 'barchart';
+exports.title = 'Bar chart';
+exports.icon = 'fa-bar-chart';
 exports.author = 'Peter Širka';
 exports.group = 'Charts';
-exports.options = { id: null, background: '#8CC152', type: 'days', high: null, low: null, showArea: true, showPoint: true, showLine: true, smoothCurves: true, XshowLabel: true, XshowGrid: true, YshowLabel: true, YshowGrid: false, onlyInteger: true, dateFormat: 'dd.MM', formatter: '{0}', decimals: 1 };
+exports.options = { id: null, background: '#434A54', type: 'days', high: null, low: null, showArea: true, showPoint: true, showLine: true, smoothCurves: true, XshowLabel: true, XshowGrid: true, YshowLabel: true, YshowGrid: false, onlyInteger: true, dateFormat: 'dd.MM', formatter: '{0}', decimals: 1 };
 exports.version = '1.0.0';
 
 exports.install = function(instance) {
 
-	var chart;
+	var chart, backup;
 
 	instance.shade = function(color, percent) {
 		var R = parseInt(color.substring(1,3),16);
@@ -66,6 +67,8 @@ exports.install = function(instance) {
 
 		if (!instance.options.id || response.id !== instance.options.id || response.type !== 'stats')
 			return;
+
+		backup = response;
 
 		var size = instance.size;
 		var data = {};
@@ -99,6 +102,7 @@ exports.install = function(instance) {
 			options.showArea = opt.showArea;
 			options.showLine = opt.showLine;
 			options.showPoint = opt.showPoint;
+			options.horizontalBars = opt.horizontalBars;
 
 			if (opt.smoothCurves)
 				options.lineSmooth = Chartist.Interpolation.step();
@@ -113,8 +117,11 @@ exports.install = function(instance) {
 			options.axisY.showGrid = opt.YshowGrid;
 			options.axisX = {};
 			options.axisX.showGrid = opt.XshowGrid;
-			options.axisX.position = 'middle';
-			chart = new Chartist.Line(instance.dom, data, options);
+			chart = new Chartist.Bar(instance.dom, data, options);
+			chart.on('draw', function(data) {
+				if (data.type === 'bar')
+					data.element.attr({ style: 'stroke-width: 15px' });
+			});
 		}, 500);
 	});
 
@@ -128,8 +135,10 @@ exports.install = function(instance) {
 		var area = instance.shade(color, 20);
 		var line = instance.shade(color, 20);
 		var point = instance.shade(color, -20);
+
 		$('#style' + instance.id).remove();
-		$('<style type="text/css" id="style{0}">{1}</style>'.format(instance.id, '.style{3} .ct-series-a .ct-area{fill:#FFFFFF}\n.style{3} .ct-series-a .ct-line{stroke:{1};}\n.style{3} .ct-series-a .ct-point{stroke:#FFFFFF;}.ct-label{color:#FFFFFF;}.style{3} .ct-grid{stroke:#FFFFFF;stroke-opacity:.2}'.format(area, line, point, instance.id))).appendTo('head');
+		$('<style type="text/css" id="style{0}">{1}</style>'.format(instance.id, '.style{3} .ct-series-a .ct-bar{stroke:#FFFFFF;}.ct-label{color:#FFFFFF;}.style{3} .ct-grid{stroke:#FFFFFF;stroke-opacity:.2}'.format(area, line, point, instance.id))).appendTo('head');
+
 		instance.css('background-color', color);
 		chart && chart.detach();
 		chart = null;
@@ -138,8 +147,14 @@ exports.install = function(instance) {
 		options.id && instance.send(options.id, 'stats');
 	};
 
+	instance.on('resize', function() {
+		chart && chart.detach();
+		chart = null;
+		backup && instance.emit('data', backup);
+	});
+
 	instance.make = function() {
-		instance.element.addClass('dashboardlinechart style' + instance.id);
+		instance.element.addClass('dashboardbarchart style' + instance.id);
 		instance.reconfigure();
 	};
 
