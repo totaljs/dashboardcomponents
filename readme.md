@@ -11,6 +11,7 @@ __Requirements__:
 
 ## Component maker
 
+- clone this repository
 - run `$ node maker.js`
 - open `http://127.0.0.1:8000` in your browser
 
