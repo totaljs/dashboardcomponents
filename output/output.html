@@ -38,6 +38,8 @@ exports.version = '1.0.0';
 
 exports.install = function(instance) {
 
+	var template = null;
+
 	instance.on('data', function(response) {
 		var options = instance.options;
 		if (RELEASE && (!options.id || response.id !== options.id || response.type !== 'laststate'))
