@@ -37,6 +37,16 @@
 </div>
 </script>
 
+<!-- DEMO DATA -->
+<script type="text/json">
+{
+	"format": "{0}",
+	"dateformat": "dd.MM",
+	"datetime": "2017-07-06T09:01:21.253Z",
+	"value": 24
+}
+</script>
+
 <script>
 exports.name = 'lastvalue';
 exports.title = 'Last value';
@@ -74,7 +84,7 @@ exports.install = function(instance) {
 
 		var options = instance.options;
 
-		if (!options.id || response.id !== options.id || response.type !== 'laststate')
+		if (RELEASE && (!options.id || response.id !== options.id || response.type !== 'laststate'))
 			return;
 
 		var data = response.body;

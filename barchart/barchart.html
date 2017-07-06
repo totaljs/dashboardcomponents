@@ -65,7 +65,7 @@ exports.install = function(instance) {
 
 	instance.on('data', function(response) {
 
-		if (!instance.options.id || response.id !== instance.options.id || response.type !== 'stats')
+		if (RELEASE && (!instance.options.id || response.id !== instance.options.id || response.type !== 'stats'))
 			return;
 
 		backup = response;
