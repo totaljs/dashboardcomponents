@@ -1,0 +1,71 @@
+<style>
+.dashboardoutput .tablecell { height: 100%; display: table; width: 100%; color: white; }
+.dashboardoutput .content { display: table-cell; vertical-align: middle; text-align: center; }
+</style>
+
+<script type="text/html" settings>
+	<div class="padding">
+		<div class="m" data-jc="dropdown" data-jc-path="id" data-required="true" data-source="common.instances" data-source-condition="n => n.component === 'dashboardoutput'" data-empty="">@(Flow instance)</div>
+		<div data-jc="multioptions" data-jc-path="?">
+			<script type="text/plain">
+				option('background', 'Background Color', '#967ADC', 'Color');
+			</script>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" body>
+<div style="height:100%">
+	<div class="tablecell">
+		<div class="content"></div>
+	</div>
+</div>
+</script>
+
+<!-- DEMO DATA -->
+<script type="text/json">
+"<b>BOLD</b> VALUE"
+</script>
+
+<script>
+exports.name = 'output';
+exports.title = 'Output';
+exports.icon = 'fa-bar-chart';
+exports.author = 'Peter Širka';
+exports.group = 'Analytics';
+exports.options = { id: null, background: '#967ADC' };
+exports.version = '1.0.0';
+
+exports.install = function(instance) {
+
+	instance.on('data', function(response) {
+		var options = instance.options;
+		if (RELEASE && (!options.id || response.id !== options.id || response.type !== 'laststate'))
+			return;
+		var data = response.body;
+		data != null && template.value.html(data.toString());
+	});
+
+	instance.on('resize', function(size) {
+		h = (size.height / 100) * 30;
+		template.value.css('font-size', ((h / 100) * 30) + 'px');
+	});
+
+	instance.reconfigure = function() {
+		var options = instance.options;
+		instance.element.css('background-color', options.background);
+
+		// Refresh data
+		options.id && instance.send(options.id, 'laststate');
+		instance.emit('resize', instance.size);
+	};
+
+	instance.make = function() {
+		instance.element.addClass('dashboardoutput');
+		template = VIRTUALIZE(instance.element, { value: '.content' });
+		instance.reconfigure();
+	};
+
+	instance.on('options', instance.reconfigure);
+};
+</script>
