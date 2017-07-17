@@ -526,7 +526,7 @@ exports.install = function(instance) {
 
 		value[instance.options.type].forEach(function(item) {
 			data.labels.push(item.datecreated.format(instance.options.dateFormat));
-			data.series[0].push(item.value > 60 ? 30 : item.value);
+			data.series[0].push(item.value);
 		});
 
 		if (chart) {
