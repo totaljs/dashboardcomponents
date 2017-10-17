@@ -9,7 +9,7 @@
 
 <script type="text/html" settings>
 	<div class="padding">
-		<div class="m" data-jc="dropdown" data-jc-path="id" data-required="true" data-source="common.instances" data-source-condition="n => n.component === 'dashboardanalytics'" data-empty="">@(Flow instance)</div>
+		<div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="datasource:common.instances;empty:;condition:n => n.component === 'dashboardanalytics';required:true">@(Flow instance)</div>
 		<div data-jc="multioptions" data-jc-path="?">
 			<script type="text/plain">
 				option('background', 'Background Color', '#8CC152', 'Color');
@@ -115,7 +115,7 @@ exports.install = function(instance) {
 		instance.element.css('background-color', bg);
 		template.value.css('background-color', bg);
 		template.icon.css('background-color', options.background);
-		template.icon.find('.fa').removeClass().addClass('fa fa-' + options.icon);
+		template.icon.find('.fa').rclass().aclass('fa fa-' + options.icon);
 
 		// Refresh data
 		options.id && instance.send(options.id, 'laststate');
@@ -123,7 +123,7 @@ exports.install = function(instance) {
 	};
 
 	instance.make = function() {
-		instance.element.addClass('dashboardlastvalue');
+		instance.element.aclass('dashboardlastvalue');
 		template = VIRTUALIZE(instance.element, { icon: '.icon', value: '.value', date: '.date' });
 		instance.reconfigure();
 	};
