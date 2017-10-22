@@ -1,6 +1,6 @@
 <script type="text/html" settings>
 	<div class="padding">
-        <div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="datasource:common.instances;empty:;condition:n => n.component === 'dashboardanalytics';required:true">@(Flow instance)</div>
+        <div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="datasource:common.instances;empty:;if:n => n.component === 'dashboardanalytics';required:true">@(Flow instance)</div>
 		<div data-jc="multioptions" data-jc-path="?">
 			<script type="text/plain">
 				option('background', 'Background Color', '#8CC152', 'Color');
