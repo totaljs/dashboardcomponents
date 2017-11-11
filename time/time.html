@@ -1,0 +1,67 @@
+<style>
+.dashboardtime .tablecell { height: 100%; display: table; width: 100%; color: white; }
+.dashboardtime .content { display: table-cell; vertical-align: middle; text-align: center; }
+</style>
+
+<script type="text/html" settings>
+	<div class="padding">
+		<div class="m" data-jc="textbox" data-jc-path="format" data-jc-config="placeholder:HH:mm">@(Format)</div>
+		<div data-jc="multioptions" data-jc-path="?">
+			<script type="text/plain">
+				option('background', 'Background Color', '#967ADC', 'Color');
+			</script>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" body>
+<div style="height:100%">
+	<div class="tablecell">
+		<div class="content"></div>
+	</div>
+</div>
+</script>
+
+<!-- DEMO DATA -->
+<script type="text/json">
+"12:00"
+</script>
+
+<script>
+exports.name = 'clock';
+exports.title = 'Clock';
+exports.icon = 'fa-clock';
+exports.author = 'Martin Smola';
+exports.group = 'Info';
+exports.options = { background: '#967ADC' };
+exports.version = '1.0.0';
+
+exports.install = function(instance) {
+
+	var template = null;	
+
+	instance.on('resize', function(size) {
+		h = (size.height / 100) * 70;
+		template.value.css('font-size', ((h / 100) * 70) + 'px');
+	});
+
+	instance.reconfigure = function() {
+		var options = instance.options;
+		instance.element.css('background-color', options.background);
+
+		instance.emit('resize', instance.size);
+	};
+
+	instance.make = function() {
+		instance.element.addClass('dashboardtime');
+		template = VIRTUALIZE(instance.element, { value: '.content' });
+		instance.reconfigure();
+
+		setInterval(function(){
+			template.value.html(new Date().format(instance.options.format || 'HH:mm'));
+		}, 1000);
+	};
+
+	instance.on('options', instance.reconfigure);
+};
+</script>

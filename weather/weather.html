@@ -1,0 +1,532 @@
+<style>
+.dashboardweather .tablecell { height: 100%; width: 100%; color: white; }
+/*.dashboardweather .content { display: table-cell; vertical-align: middle; text-align: center; }*/
+.dashboardweather .topleft { height: 70%; width: 45%; float: left;}
+.dashboardweather .bottomright { height: 70%; width: 55%; float: right;}
+.dashboardweather .town { width: 100%; text-align: center; clear: both; }
+.dashboardweather .temp { padding-top: 17%; width: 100%; text-align: center; }
+.dashboardweather .wi { height: 100%; vertical-align: middle; width: 100%; padding-top: 30%; text-align: center; }
+</style>
+
+<script type="text/html" settings>
+	<div class="padding">
+		<div data-jc="textbox" data-jc-path="appid" data-jc-config="placeholder:your api key" class="m">@(API key)</div>
+		<div data-jc="textbox" data-jc-path="town" data-jc-config="placeholder:place" class="m">@(Town)</div>
+		<div data-jc="textbox" data-jc-path="units" data-jc-config="placeholder:metric or imperial" class="m">@(Units)</div>
+		<div data-jc="textbox" data-jc-path="lang" data-jc-config="placeholder:cz, en etc.">@(Language)</div>
+		<div class="help m">@(Only description is translated. See supported codes at http://openweathermap.org/current#multi)</div>
+		<div data-jc="multioptions" data-jc-path="?">
+			<script type="text/plain">
+				option('background', 'Background Color', '#967ADC', 'Color');
+			</script>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" body>
+<div style="height:100%">
+	<div class="tablecell">
+		<div class="topleft">
+			<i class="wi"></i>
+		</div>
+		<div class="bottomright">
+			<div class="temp"></div>
+		</div>
+		<div class="town"></div>
+	</div>
+</div>
+</script>
+
+<!-- DEMO DATA -->
+<script type="text/json">
+{"coord":{"lon":16.15,"lat":50.34},"weather":[{"id":500,"main":"Rain","description":"light rain","icon":"10n"}],"base":"stations","main":{"temp":11,"pressure":1020,"humidity":93,"temp_min":11,"temp_max":11},"visibility":6000,"wind":{"speed":3.6,"deg":270},"clouds":{"all":90},"dt":1506186000,"sys":{"type":1,"id":5896,"message":0.0107,"country":"CZ","sunrise":1506141863,"sunset":1506185377},"id":3069466,"name":"Nove Mesto nad Metuji","cod":200}
+</script>
+
+<script>
+exports.name = 'weather';
+exports.title = 'Weather';
+exports.icon = 'sun-o';
+exports.author = 'Martin Smola';
+exports.group = 'Info';
+exports.options = { background: '#967ADC' };
+exports.version = '1.0.0';
+
+exports.install = function(instance) {
+
+	var template = null;	
+
+	var cachekey = 'weather_' + instance.id;
+
+	instance.on('resize', function(size) {
+		
+		var isSquare = size.cols === size.rows;
+		var isWider = size.cols > size.rows;
+
+		if (isWider) {
+
+			template.icon.css('font-size', ((size.height / 100) * 30) + 'px').css('padding-top', '30%');
+			template.temp.css('font-size', ((size.height / 100) * 30) + 'px').css('padding-top', '17%');
+			template.town.css('font-size', ((size.width / 100) * 7) + 'px');
+
+		} else if (isSquare) {
+
+			// template.icon.css('font-size', ((size.height / 100) * 15) + 'px').css('padding-top', '75%');
+			// template.temp.css('font-size', ((size.height / 100) * 17) + 'px').css('padding-top', '50%');
+			// template.town.css('font-size', ((size.height / 100) * 10) + 'px');
+			template.icon.css('font-size', ((size.width / 100) * 28) + 'px').css('padding-top', '14%');
+			template.temp.css('font-size', ((size.width / 100) * 28) + 'px').css('padding-top', '0%');
+			template.town.css('font-size', ((size.width / 100) * 10) + 'px').css('padding-top', '0%');
+			template.left.css('width', '100%').css('height', '40%');
+			template.right.css('width', '100%').css('height', '40%');
+
+		} else { // is narrow
+
+			template.icon.css('font-size', ((size.width / 100) * 28) + 'px').css('padding-top', '30%');
+			template.temp.css('font-size', ((size.width / 100) * 28) + 'px').css('padding-top', '14%');
+			template.town.css('font-size', ((size.width / 100) * 10) + 'px').css('padding-top', '10%');
+			template.left.css('width', '100%').css('height', '40%');
+			template.right.css('width', '100%').css('height', '40%');
+
+		}
+	});
+
+	instance.reconfigure = function() {
+		var options = instance.options;
+		instance.element.css('background-color', options.background);
+		instance.emit('resize', instance.size);
+		getWeather(true);
+	};
+
+	instance.make = function() {
+		instance.element.addClass('dashboardweather');
+		template = VIRTUALIZE(instance.element, { left: '.topleft', right: '.bottomright', town: '.town', icon: '.wi', temp: '.temp' });
+		instance.reconfigure();		
+	};
+
+	instance.on('options', instance.reconfigure);
+
+	var processing = false;
+
+	function getWeather(refresh) {
+		var options = instance.options;
+
+		if (!options.town || !options.appid)
+			return;
+
+		!options.units && (options.units = 'metric');
+		!options.lang && (options.lang = 'en');
+
+		var url = MAIN.createURL('http://api.openweathermap.org/data/2.5/weather', { q: options.town, units: options.units, appid: options.appid, lang: options.lang });
+
+		var cache = MAIN.cache(cachekey);
+		if (!refresh && cache) {
+			return drawWeather(cache);
+		}
+
+		if (processing)
+			return setTimeout(function(){ getWeather(); }, 1000);
+
+		processing = true;
+
+		fetch('http://api.openweathermap.org/data/2.5/weather?q={0}&units={1}&appid={2}'.format(options.town, options.units, options.appid))
+		.then(function(response){ return response.json(); })
+		.then(function(response) {
+			MAIN.cache(cachekey, response, 30 * 60 * 1000);
+			processing = false;
+			drawWeather(response);
+		});
+	};
+
+	function drawWeather(data) {
+
+		var prefix = 'wi-';
+		var code = data.weather[0].id;
+		var icon = icons[code].icon;
+
+		// If we are not in the ranges mentioned above, add a day/night prefix.
+		if (!(code > 699 && code < 800) && !(code > 899 && code < 1000)) {
+			icon = 'day-' + icon;
+		}
+
+		icon = prefix + icon;
+
+		template.icon.rclass(function(index, name) {
+			return name !== 'wi';
+		});
+		template.icon.aclass(icon);
+		template.town.html(instance.options.town);
+		template.temp.html(Math.round(data.main.temp) + (instance.options.units === 'metric' ? '&deg;C' : '&deg;F') + '');
+	};
+};
+
+var icons = {
+  "200": {
+    "label": "thunderstorm with light rain",
+    "icon": "storm-showers"
+  },
+
+  "201": {
+    "label": "thunderstorm with rain",
+    "icon": "storm-showers"
+  },
+
+  "202": {
+    "label": "thunderstorm with heavy rain",
+    "icon": "storm-showers"
+  },
+
+  "210": {
+    "label": "light thunderstorm",
+    "icon": "storm-showers"
+  },
+
+  "211": {
+    "label": "thunderstorm",
+    "icon": "thunderstorm"
+  },
+
+  "212": {
+    "label": "heavy thunderstorm",
+    "icon": "thunderstorm"
+  },
+
+  "221": {
+    "label": "ragged thunderstorm",
+    "icon": "thunderstorm"
+  },
+
+  "230": {
+    "label": "thunderstorm with light drizzle",
+    "icon": "storm-showers"
+  },
+
+  "231": {
+    "label": "thunderstorm with drizzle",
+    "icon": "storm-showers"
+  },
+
+  "232": {
+    "label": "thunderstorm with heavy drizzle",
+    "icon": "storm-showers"
+  },
+
+  "300": {
+    "label": "light intensity drizzle",
+    "icon": "sprinkle"
+  },
+
+  "301": {
+    "label": "drizzle",
+    "icon": "sprinkle"
+  },
+
+  "302": {
+    "label": "heavy intensity drizzle",
+    "icon": "sprinkle"
+  },
+
+  "310": {
+    "label": "light intensity drizzle rain",
+    "icon": "sprinkle"
+  },
+
+  "311": {
+    "label": "drizzle rain",
+    "icon": "sprinkle"
+  },
+
+  "312": {
+    "label": "heavy intensity drizzle rain",
+    "icon": "sprinkle"
+  },
+
+  "313": {
+    "label": "shower rain and drizzle",
+    "icon": "sprinkle"
+  },
+
+  "314": {
+    "label": "heavy shower rain and drizzle",
+    "icon": "sprinkle"
+  },
+
+  "321": {
+    "label": "shower drizzle",
+    "icon": "sprinkle"
+  },
+
+  "500": {
+    "label": "light rain",
+    "icon": "rain"
+  },
+
+  "501": {
+    "label": "moderate rain",
+    "icon": "rain"
+  },
+
+  "502": {
+    "label": "heavy intensity rain",
+    "icon": "rain"
+  },
+
+  "503": {
+    "label": "very heavy rain",
+    "icon": "rain"
+  },
+
+  "504": {
+    "label": "extreme rain",
+    "icon": "rain"
+  },
+
+  "511": {
+    "label": "freezing rain",
+    "icon": "rain-mix"
+  },
+
+  "520": {
+    "label": "light intensity shower rain",
+    "icon": "showers"
+  },
+
+  "521": {
+    "label": "shower rain",
+    "icon": "showers"
+  },
+
+  "522": {
+    "label": "heavy intensity shower rain",
+    "icon": "showers"
+  },
+
+  "531": {
+    "label": "ragged shower rain",
+    "icon": "showers"
+  },
+
+  "600": {
+    "label": "light snow",
+    "icon": "snow"
+  },
+
+  "601": {
+    "label": "snow",
+    "icon": "snow"
+  },
+
+  "602": {
+    "label": "heavy snow",
+    "icon": "snow"
+  },
+
+  "611": {
+    "label": "sleet",
+    "icon": "sleet"
+  },
+
+  "612": {
+    "label": "shower sleet",
+    "icon": "sleet"
+  },
+
+  "615": {
+    "label": "light rain and snow",
+    "icon": "rain-mix"
+  },
+
+  "616": {
+    "label": "rain and snow",
+    "icon": "rain-mix"
+  },
+
+  "620": {
+    "label": "light shower snow",
+    "icon": "rain-mix"
+  },
+
+  "621": {
+    "label": "shower snow",
+    "icon": "rain-mix"
+  },
+
+  "622": {
+    "label": "heavy shower snow",
+    "icon": "rain-mix"
+  },
+
+  "701": {
+    "label": "mist",
+    "icon": "sprinkle"
+  },
+
+  "711": {
+    "label": "smoke",
+    "icon": "smoke"
+  },
+
+  "721": {
+    "label": "haze",
+    "icon": "day-haze"
+  },
+
+  "731": {
+    "label": "sand, dust whirls",
+    "icon": "cloudy-gusts"
+  },
+
+  "741": {
+    "label": "fog",
+    "icon": "fog"
+  },
+
+  "751": {
+    "label": "sand",
+    "icon": "cloudy-gusts"
+  },
+
+  "761": {
+    "label": "dust",
+    "icon": "dust"
+  },
+
+  "762": {
+    "label": "volcanic ash",
+    "icon": "smog"
+  },
+
+  "771": {
+    "label": "squalls",
+    "icon": "day-windy"
+  },
+
+  "781": {
+    "label": "tornado",
+    "icon": "tornado"
+  },
+
+  "800": {
+    "label": "clear sky",
+    "icon": "sunny"
+  },
+
+  "801": {
+    "label": "few clouds",
+    "icon": "cloudy"
+  },
+
+  "802": {
+    "label": "scattered clouds",
+    "icon": "cloudy"
+  },
+
+  "803": {
+    "label": "broken clouds",
+    "icon": "cloudy"
+  },
+
+  "804": {
+    "label": "overcast clouds",
+    "icon": "cloudy"
+  },
+
+
+  "900": {
+    "label": "tornado",
+    "icon": "tornado"
+  },
+
+  "901": {
+    "label": "tropical storm",
+    "icon": "hurricane"
+  },
+
+  "902": {
+    "label": "hurricane",
+    "icon": "hurricane"
+  },
+
+  "903": {
+    "label": "cold",
+    "icon": "snowflake-cold"
+  },
+
+  "904": {
+    "label": "hot",
+    "icon": "hot"
+  },
+
+  "905": {
+    "label": "windy",
+    "icon": "windy"
+  },
+
+  "906": {
+    "label": "hail",
+    "icon": "hail"
+  },
+
+  "951": {
+    "label": "calm",
+    "icon": "sunny"
+  },
+
+  "952": {
+    "label": "light breeze",
+    "icon": "cloudy-gusts"
+  },
+
+  "953": {
+    "label": "gentle breeze",
+    "icon": "cloudy-gusts"
+  },
+
+  "954": {
+    "label": "moderate breeze",
+    "icon": "cloudy-gusts"
+  },
+
+  "955": {
+    "label": "fresh breeze",
+    "icon": "cloudy-gusts"
+  },
+
+  "956": {
+    "label": "strong breeze",
+    "icon": "cloudy-gusts"
+  },
+
+  "957": {
+    "label": "high wind, near gale",
+    "icon": "cloudy-gusts"
+  },
+
+  "958": {
+    "label": "gale",
+    "icon": "cloudy-gusts"
+  },
+
+  "959": {
+    "label": "severe gale",
+    "icon": "cloudy-gusts"
+  },
+
+  "960": {
+    "label": "storm",
+    "icon": "thunderstorm"
+  },
+
+  "961": {
+    "label": "violent storm",
+    "icon": "thunderstorm"
+  },
+
+  "962": {
+    "label": "hurricane",
+    "icon": "cloudy-gusts"
+  }
+};
+
+IMPORT('/css/weather-icons.min.css');
+IMPORT('/css/weather-icons-wind.min.css');
+</script>
