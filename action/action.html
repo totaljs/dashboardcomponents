@@ -45,7 +45,7 @@
 
 <script type="text/html" settings>
 	<div class="padding">
-		<div class="m" data-jc="dropdown" data-jc-path="id" data-required="true" data-source="common.instances" data-source-condition="n => n.component === 'dashboardaction'" data-empty="">@(Flow instance)</div>
+		<div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="required:true;datasource:common.instances;if:n => n.component === 'dashboardaction';empty:">@(Flow instance)</div>
 		<div class="m" data-jc="textbox" data-jc-path="name" data-jc-config="placeholder:HH:mm">@(Name)</div>
 		<div class="m" data-jc="textbox" data-jc-path="icon" data-jc-config="placeholder:">@(Icon (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a> without fa-))</div>
 		<div data-jc="multioptions" data-jc-path="?">
