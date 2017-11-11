@@ -4,6 +4,9 @@
 		"https://rawgit.com/totaljs/dashboardcomponents/master/linechart/linechart.html",
 		"https://rawgit.com/totaljs/dashboardcomponents/master/barchart/barchart.html",
 		"https://rawgit.com/totaljs/dashboardcomponents/master/lastvalue/lastvalue.html",
-		"https://rawgit.com/totaljs/dashboardcomponents/master/output/output.html"
+		"https://rawgit.com/totaljs/dashboardcomponents/master/output/output.html",
+		"https://rawgit.com/totaljs/dashboardcomponents/master/action/action.html",
+		"https://rawgit.com/totaljs/dashboardcomponents/master/time/time.html",
+		"https://rawgit.com/totaljs/dashboardcomponents/master/weather/weather.html"
 	]
 }]
