@@ -54,7 +54,7 @@ exports.icon = 'fa-line-chart';
 exports.author = 'Peter Širka';
 exports.group = 'Analytics';
 exports.options = { id: null, background: '#434A54', type: 'days', high: null, low: null, showArea: true, showPoint: true, showLine: true, smoothCurves: true, XshowLabel: true, XshowGrid: true, YshowLabel: true, YshowGrid: false, onlyInteger: true, dateFormat: 'dd.MM', formatter: '{0}', decimals: 1 };
-exports.version = '1.0.0';
+exports.version = '1.1.0';
 
 exports.install = function(instance) {
 
@@ -136,6 +136,8 @@ exports.install = function(instance) {
 			options.axisX = {};
 			options.axisX.showGrid = opt.XshowGrid;
 			options.axisX.position = 'middle';
+			options.width = size.width - 16;
+			options.height = size.height - 40;
 			chart = new Chartist.Line(instance.element.find('.chart').get(0), data, options);
 			instance.find('.title').html(value.name || 'Chart title');
 		}, 500);
