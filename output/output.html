@@ -17,7 +17,7 @@
 <script type="text/html" body>
 <div style="height:100%">
 	<div class="tablecell">
-		<div class="content"></div>
+		<div class="content">no data</div>
 	</div>
 </div>
 </script>
@@ -44,13 +44,13 @@ exports.install = function(instance) {
 		var options = instance.options;
 		if (RELEASE && (!options.id || response.id !== options.id || response.type !== 'laststate'))
 			return;
-		var data = response.body;
+		var data = response.body && response.body.data || 'no data';
 		data != null && template.value.html(data.toString());
 	});
 
 	instance.on('resize', function(size) {
 		h = (size.height / 100) * 30;
-		template.value.css('font-size', ((h / 100) * 30) + 'px');
+		template.value.css('font-size', ((h / 100) * 60) + 'px');
 	});
 
 	instance.reconfigure = function() {
