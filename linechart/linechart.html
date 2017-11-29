@@ -80,7 +80,7 @@ exports.install = function(instance) {
 		return '#' + RR + GG + BB;
 	};
 
-	instance.on('data', function(response) {
+	instance.on('data', function(response, fromresize) {
 
 		if (RELEASE && (!instance.options.id || response.id !== instance.options.id || response.type !== 'stats'))
 			return;
@@ -91,7 +91,7 @@ exports.install = function(instance) {
 		var data = {};
 		var value = response.body;
 
-		instance.options.reverse && value[instance.options.type].reverse();
+		!fromresize && instance.options.reverse && value[instance.options.type].reverse();
 
 		data.labels = [];
 		data.series = [[]];
@@ -166,7 +166,7 @@ exports.install = function(instance) {
 	instance.on('resize', function() {
 		chart && chart.detach();
 		chart = null;
-		backup && instance.emit('data', backup);
+		backup && instance.emit('data', backup, true);
 	});
 
 	instance.make = function() {
