@@ -44,7 +44,7 @@ exports.install = function(instance) {
 		var options = instance.options;
 		if (RELEASE && (!options.id || response.id !== options.id || response.type !== 'laststate'))
 			return;
-		var data = response.body.data || 'no data';
+		var data = response.body || 'no data';
 		data != null && template.value.html(data.toString());
 	});
 
