@@ -1,0 +1,124 @@
+<style>
+.dashboardlight .tablecell { height: 100%; display: table; width: 100%; color: white; }
+.dashboardlight .content { display: table-cell; vertical-align: middle; text-align: center; cursor: pointer; padding-top: 3px; }
+.dashboardlight .error { color: red; }
+.dashboardlight .svg { margin: 0 auto; height: 50%; }
+.dashboardlight .name { text-overflow: ellipsis; white-space: nowrap; overflow:hidden; padding-left: 3px; padding-right: 3px; }
+
+@keyframes rotatinglight {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.dashboardlight .rotating {
+  animation: rotatinglight 1s linear infinite;
+}
+</style>
+
+<script type="text/html" settings>
+	<div class="padding">
+		<div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="required:true;datasource:common.instances;if:n => n.component === 'device_light';empty:">@(Flow instance)</div>
+		<div data-jc="multioptions" data-jc-path="?">
+			<script type="text/plain">
+				option('background', 'Background Color', '#967ADC', 'Color');
+			</script>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" body>
+<div style="height:100%">
+	<div class="tablecell">
+		<div class="content">
+			<div class="svg">
+				<svg viewBox="0 0 512 512">
+					<path class="activelight" style="opacity:1;fill:#ffff00;fill-opacity:1;stroke:none;stroke-width:53;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" d="m 136.98761,60.965978 115.23638,-50.131882 111.2125,44.540552 54.48914,114.325742 -41.4427,104.66805 -21.4589,83.78367 -93.80137,1.0815 -101.86973,-0.0633 L 135.65904,275.44295 92.809814,172.7427 Z"/>
+					<path style="fill:#fff;" d="M256,32c77.312,0,140,62.688,140,140c0,76.125-45.875,85-54.5,168c0,7.75-6.25,14-14,14h-143c-7.75,0-14-6.25-14-14h-0.031   C161.875,257,116,248.125,116,172C116,94.688,178.688,32,256,32 M326,368c7.75,0,14,6.25,14,14s-6.25,14-14,14H186   c-7.75,0-14-6.25-14-14s6.25-14,14-14H326 M326,410c7.75,0,14,6.25,14,14s-6.25,14-14,14H186c-7.75,0-14-6.25-14-14s6.25-14,14-14   H326 M312,452c0,15.469-12.531,28-28,28h-56c-15.469,0-28-12.531-28-28H312 M256,0C161.156,0,84,77.156,84,172   c0,47.625,15.563,74.969,29.25,99.125c11.625,20.438,21.688,38.156,25.281,71.094c0.344,7.313,2.438,14.188,5.844,20.219   C141.563,368.375,140,375,140,382c0,7.562,1.813,14.688,5.063,21c-3.25,6.312-5.063,13.438-5.063,21   c0,19.719,12.469,36.562,29.938,43.094C176.625,492.906,200.125,512,228,512h56c27.875,0,51.375-19.094,58.062-44.906   C359.531,460.562,372,443.719,372,424c0-7.562-1.844-14.688-5.094-21c3.25-6.312,5.094-13.438,5.094-21   c0-7-1.562-13.625-4.375-19.531c3.406-6.062,5.469-12.969,5.812-20.281c3.625-32.905,13.656-50.594,25.281-71.062   C412.438,247,428,219.625,428,172C428,77.156,350.844,0,256,0L256,0z"/>
+				</svg>
+			</div>
+			<div class="name">Light</div>
+		</div>
+	</div>
+</div>
+</script>
+
+<script>
+exports.name = 'light';
+exports.title = 'Light';
+exports.icon = 'fa-lightbulb-o';
+exports.author = 'Martin Smola';
+exports.group = 'Devices';
+exports.options = { background: '#967ADC' };
+exports.version = '1.0.0';
+
+exports.install = function(instance) {
+
+	var type = '';
+	var $name, $svg;
+	var $on;
+	var timeout = 0;
+
+	instance.on('resize', function(size) {
+		instance.element.css('font-size', ((size.height / 100) * 16) + 'px');
+		$name.width(size.width - 20 + 'px');
+		$svg.css('width', (size.height / 3) + 'px');
+	});
+
+	instance.on('data', function(response) {
+
+		var options = instance.options;
+
+		if (RELEASE && (!options.id || response.id !== options.id || (response.type !== 'status')))
+			return;
+
+		var device = response.body;
+
+		var t2 = new Date().getTime() - 1000;
+		if (timeout < t2) {
+			doit();
+		} else {
+			setTimeout(doit, timeout - t2);
+		}
+
+		function doit() {
+			$svg.rclass('rotating');
+			$on.tclass('hidden', !device.on);
+		}	
+	});
+
+	instance.reconfigure = function() {
+
+		var options = instance.options;
+
+		instance.element.css('background-color', options.background);
+		instance.emit('resize', instance.size);
+		instance.options.id && instance.send(instance.options.id, 'status');
+	};
+
+	instance.make = function() {
+
+		instance.element.addClass('dashboardlight');
+
+		$name = instance.element.find('.name');
+		$svg = instance.element.find('svg');
+		$on = instance.element.find('.activelight');
+
+		instance.reconfigure();
+
+		instance.element.on('click', function(){
+
+			$svg.aclass('rotating');
+			timeout = new Date().getTime();
+
+			setTimeout2(instance.id, function(){
+				instance.options.id && instance.send(instance.options.id, 'click');
+			}, 50);
+		});	
+	};
+
+	instance.on('options', instance.reconfigure);
+};
+</script>

@@ -1,0 +1,345 @@
+<style>
+.dashboardthermostat .tablecell { height: 100%; display: table; width: 100%; color: white; }
+.dashboardthermostat .content { display: table-cell; vertical-align: middle; text-align: center; cursor: pointer; padding-top: 3px; }
+.dashboardthermostat .error { color: red; }
+.dashboardthermostat .name { text-overflow: ellipsis; white-space: nowrap; overflow:hidden; padding-left: 3px; padding-right: 3px; margin-top: -5px; }
+
+.thermostat svg { width: 100%; height: 100%; }
+.thermostat svg > text { text-anchor: middle;alignment-baseline:middle; } 
+.thermostat svg text {
+  -webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	 -khtml-user-select: none; /* Konqueror HTML */
+	   -moz-user-select: none; /* Firefox */
+		-ms-user-select: none; /* Internet Explorer/Edge */
+			user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+.thermostat .dot, 
+.thermostat .line, 
+.thermostat .pointer { transition: transform 1.5s ease; } 
+.thermostat .line { fill: #ffffffaa; }
+.thermostat .pointer-circle { stroke: #fff; }
+.thermostat text { fill: #fff; font-family: Arial; }
+.thermostat text.set { font-size: 14pt; fill: #fff; }
+.thermostat text.settemp { font-size: 20pt; fill: #fff; }
+.thermostat text.temp { font-size: 36pt; fill: #fff; }
+.thermostat text.mode { font-size: 16pt; text-transform: uppercase; fill: #fff; }
+
+.dark .thermostat text.set { font-size: 14pt; fill: #fff; }
+.dark .thermostat text.settemp { font-size: 20pt; fill: #fff; }
+.dark .thermostat text.temp { font-size: 36pt; fill: #fff; }
+.dark .thermostat text.mode { font-size: 16pt; fill: #fff; }
+
+.thermostat svg.svg-shadow {
+	/* Use -webkit- only if supporting: Chrome < 54, iOS < 9.3, Android < 4.4.4 */
+	-webkit-filter: drop-shadow( 0px 5px 4px #0000004a ); 
+			filter: drop-shadow( 0px 5px 4px #0000004a );
+}
+.thermostat_wrapper {
+	margin: 0 auto;
+}
+</style>
+
+<script type="text/html" settings>
+	<div class="padding">
+		<div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="required:true;datasource:common.instances;if:n => n.component === 'device_thermostat';empty:">@(Flow instance)</div>
+		<div class="m" data-jc="textbox" data-jc-path="name" data-jc-config="placeholder:HH:mm">@(Name)</div>
+		<div data-jc="multioptions" data-jc-path="?">
+			<script type="text/plain">
+				option('background', 'Background Color', '#967ADC', 'Color');
+				option('transparent', 'Set Background Color to Transparent', false);
+			</script>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" body>
+<div style="height:100%">
+	<div class="tablecell">
+		<div class="content">
+			<div class="thermostat_wrapper">
+				<div class="" data-jc="thermostat" data-jc-path="thermostat"></div>
+				<div data-jc="togglebutton" data-jc-path="on"></div>
+			</div>
+			<div class="name"></div>
+		</div>
+	</div>
+</div>
+</script>
+
+<script>
+exports.name = 'thermostat';
+exports.title = 'Thermostat';
+exports.icon = 'fa-thermometer-half';
+exports.author = 'Martin Smola';
+exports.group = 'Devices';
+exports.options = { background: '#967ADC' };
+exports.version = '1.0.0';
+
+exports.install = function(instance) {
+
+	var $name, $thermostat_wrapper;	
+
+	instance.on('resize', function(size) {
+		var s;
+		if (size.width <= size.height)
+			s = size.width;
+		else
+			s = size.height;
+
+		instance.element.css('font-size', ((s / 100) * 16) + 'px');
+		//$name.width(s - 20 + 'px');
+		$thermostat_wrapper.width(s - 20 + 'px');
+	});
+
+	instance.on('data', function(response) {
+
+		var options = instance.options;
+
+		if (RELEASE && (!options.id || response.id !== options.id || (response.type !== 'status')))
+			return;
+
+		SET(instance.scope + '.thermostat', response.body);
+			
+	});
+
+	instance.reconfigure = function() {
+
+		var options = instance.options;
+
+		instance.element.css('background-color', options.transparent ? 'transparent' : options.background);
+		options.transparent && instance.element.parent().css('box-shadow', 'none');
+		instance.emit('resize', instance.size);
+		
+		instance.options.id && instance.send(instance.options.id, 'status');
+	};
+
+	instance.make = function() {
+
+		instance.element.addClass('dashboardthermostat');
+
+		$name = instance.element.find('.name');
+		$thermostat_wrapper = instance.element.find('.thermostat_wrapper');
+
+		instance.reconfigure();
+
+		setTimeout(function(){
+			var thermostat = FIND('.{0}.thermostat'.format(instance.scope));
+			thermostat.on('options', function(){
+				console.log('SENDING setpoint OPTIONS', GET(instance.scope + '.thermostat.options.setpoint'));
+				instance.options.id && instance.send(instance.options.id, 'setpoint', GET(instance.scope + '.thermostat.options.setpoint'));
+			});
+		}, 500);
+	};
+
+	instance.on('options', instance.reconfigure);
+};
+
+COMPONENT('thermostat', function(self, config){
+	var $svg, $temp, $settemp, $mode, $pointer, $donut, $dot, $circle;
+	var moving = false;
+	var setangle = 0;
+	var lastangle = 0;
+	var setpoint = 23;
+
+	self.make = function() {
+
+		self.element.aclass('thermostat');
+		self.html(svg);
+		var $lines = self.element.find('g.lines');
+		for (var i = -30; i < 31; i++) {
+			var $rect = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
+			$rect.setAttribute('x', '-1');
+			$rect.setAttribute('y', '0');
+			$rect.setAttribute('width', '2');
+			$rect.setAttribute('height', '35');
+			$rect.setAttribute('class', 'line');
+			$rect.setAttribute('transform', 'rotate({0} 0,128)'.format(i * 4.5));
+			$lines.append($rect);
+		}
+		$svg = self.element.find('svg')[0];
+		$temp = self.element.find('text.temp')[0];
+		$settemp = self.element.find('text.settemp')[0];
+		$mode = self.element.find('text.mode')[0];
+		$pointer = self.element.find('.pointer')[0];
+		$donut = self.element.find('.donut')[0];
+		$circle = self.element.find('.circle')[0];
+		$dot = self.element.find('.pointer-circle')[0];
+
+		self.element.on('mousedown', function(e){
+
+			moving = true;
+			$pointer.style.transition = 'none';
+		});
+
+		$(window).on('mouseup', function(e){
+			if (!moving)
+				return;
+			moving = false;
+			$pointer.style.transition = 'transform 1.5s cubic-bezier(0.29, 1.48, 1, 0.96)'; //'transform 1.5s ease'
+			$pointer.setAttribute('transform', 'translate(170,25) rotate(' + (lastangle) + ' 0,145)');
+			var device = self.get();
+			self.set(self.path + '.options.setpoint.' + device.daymode, setpoint);
+			self.emit('options');
+			console.log('SCOPE', self.scope);
+		});
+
+		self.element.on('mousemove', function(e){
+
+			if (!moving)
+				return;
+			e.preventDefault();
+			e.stopPropagation();
+
+			var angle = calcAngleDegrees(e.offsetX - 150, e.offsetY - 150) + 90;
+			if (angle < 0)
+				angle = angle + 360;
+			if (angle <= 360 && angle >= 225)
+				angle = angle - 360;// 360 == 0, 270 == -90, etc
+			else if (angle > 135)
+				return;
+			$pointer.setAttribute('transform', 'translate(170,25) rotate(' + (angle) + ' 0,145)');
+			setpoint = ((angle + 135) / 9) + 10; // range 10 - 40
+			setpoint = Math.round(setpoint * 10) / 10;
+			$settemp.textContent = '{0}℃'.format(setpoint);
+			setangle = angle;
+		});
+
+		self.element.on('touchstart touchmove touchend', '.donut', function(e) {
+
+			if (e.type === 'touchmove') {
+				if (!moving)
+					return;
+				var position = offsetter(e);
+				var offset = self.element.offset();
+				var angle = calcAngleDegrees(position.x - offset.left - 150, position.y - offset.top - 150) + 90;
+
+				if (angle < 0)
+					angle = angle + 360;
+				if (angle <= 360 && angle >= 225)
+					angle = angle - 360;// 360 == 0, 270 == -90, etc
+				else if (angle > 135)
+					return;
+				$pointer.setAttribute('transform', 'translate(170,25) rotate(' + (angle) + ' 0,145)');
+				setpoint = ((angle + 135) / 9) + 10; // range 10 - 40
+				setpoint = Math.round(setpoint * 10) / 10;
+				$settemp.textContent = '{0}℃'.format(setpoint);
+				setangle = angle;
+
+			} else if (e.type === 'touchend') {
+
+				moving = false;
+				$pointer.style.transition = 'transform 1.5s ease';
+				$pointer.setAttribute('transform', 'translate(170,25) rotate(' + (lastangle) + ' 0,145)');
+				var therm = self.get();
+				self.set(self.path + '.options.setpoint.' + therm.device.daymode, setpoint);
+				self.emit('options');
+			} else {
+
+				moving = true;
+				$pointer.style.transition = 'none';
+
+			}
+			e.preventDefault();
+			e.stopPropagation();
+		});
+	};
+
+	function offsetter(evt) {
+		var position = { x: 0, y: 0 };
+
+		if (!evt)
+			return position;
+
+		if (evt.touches){
+			position.x = evt.touches[0].pageX;
+			position.y = evt.touches[0].pageY;
+		} else {
+			position.x = evt.pageX;
+			position.y = evt.pageY;
+		}
+		var parent = evt.target;
+		while (parent.offsetParent) {
+			position.x -= parent.offsetLeft;
+			position.y -= parent.offsetTop;
+			parent = parent.offsetParent;
+		}
+
+		return position;
+	}
+
+	self.setter = function(device, path, type) {
+		if (!device || type === 'init')
+			return;
+
+		var options = device.options;
+
+		options.setpoint[device.daymode] && ($settemp.textContent = '{0}℃'.format(options.setpoint[device.daymode]));
+		device.mode && ($mode.textContent = device.daymode + ':' + device.mode);
+		if (!device.temperature)
+			return;
+		device.temperature && ($temp.textContent = '{0}℃'.format(device.temperature));
+		var t2 = device.temperature - 10; // 0 - 30
+		var angle = t2 * 3.333;						
+		angle = Math.round((angle * 2.7) - 135);
+		lastangle = angle;
+		var color = getColor(device.temperature);
+		$donut.setAttribute('stroke', color);
+		$dot.setAttribute('fill', color);
+		$pointer.setAttribute('transform', 'translate(170,25) rotate(' + (angle) + ' 0,145)');
+	};
+
+var svg = `<svg class="svg-shadow" fill="#fff" viewBox="0 0 340 340">
+	<circle class="circle" cx="170" cy="170" r="146" fill="none" stroke="#fff" stroke-width="2"/>
+	<circle class="donut" cx="170" cy="170" r="110" fill="none" stroke="#64b8d9" stroke-width="50"/>
+	<g class="lines" transform="translate(170,42)"></g>
+	<g class="pointer" transform="translate(170,25) rotate(-135 0,145)">
+		<circle class="pointer-circle" cx="0" cy="0" r="8" stroke-width="3" />
+		<rect class="pointer-rect" x="-2" y="8" width="4" height="40" />
+	</g>
+	<text class="set" x="170" y="106" opacity=".8">SET</text>
+	<text class="settemp" x="170" y="128" opacity=".8">23℃</text>
+	<text class="temp" x="170" y="172" opacity=".8">23℃</text>
+	<text class="mode" x="170" y="220" opacity="1">STOPPED</text>
+</svg>`;
+
+
+
+	function calcAngleDegrees(x, y) {
+		return Math.atan2(y, x) * 180 / Math.PI;
+	}
+
+	function getColor(val) { // range 10 - 40
+		if (val < 10 || val > 40)
+			return 'grey';
+
+		val = Math.floor(val);
+		return colors[val - 10];
+	};
+	var colors = ['#0000FF','#0800F6','#1100ED','#1A00E4','#2300DB','#2B00D3','#3400CA','#3D00C1','#4600B8','#4F00AF','#5700A7','#60009E','#690095','#72008C','#7B0083','#83007B','#8C0072','#950069','#9E0060','#A70057','#AF004F','#B80046','#C1003D','#CA0034','#D3002B','#DB0023','#E4001A','#ED0011','#F60008','#FE0000','#FF0000'];
+
+	function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+		var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+
+		return {
+			x: centerX + (radius * Math.cos(angleInRadians)),
+			y: centerY + (radius * Math.sin(angleInRadians))
+		};
+	}
+
+	function describeArc(x, y, radius, startAngle, endAngle){
+
+		var start = polarToCartesian(x, y, radius, endAngle);
+		var end = polarToCartesian(x, y, radius, startAngle);
+
+		var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+		var d = [
+			"M", start.x, start.y, 
+			"A", radius, radius, 0, largeArcFlag, 0, end.x, end.y
+		].join(" ");
+
+		return d;       
+	}
+});
+</script>
