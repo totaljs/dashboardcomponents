@@ -1,0 +1,119 @@
+<style>
+.dashboardswitch .tablecell { height: 100%; display: table; width: 100%; color: white; }
+.dashboardswitch .content { display: table-cell; vertical-align: middle; text-align: center; cursor: pointer; padding-top: 3px; }
+.dashboardswitch .error { color: red; }
+.dashboardswitch .name { text-overflow: ellipsis; white-space: nowrap; overflow:hidden; padding-left: 3px; padding-right: 3px; margin-top: -5px; }
+.dashboardswitch input:checked + .dashboardswitch label i#off { display: none; }
+.dashboardswitch input:checked + .dashboardswitch label i#on { display: block; }
+.dashboardswitch .fa-spinquick { -webkit-animation: fa-spin 1s infinite linear; animation: fa-spin 1s infinite linear; }
+</style>
+
+<script type="text/html" settings>
+	<div class="padding">
+		<div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="required:true;datasource:common.instances;if:n => n.component === 'device_switch';empty:">@(Flow instance)</div>
+		<div class="m" data-jc="textbox" data-jc-path="name" data-jc-config="placeholder:HH:mm">@(Name)</div>
+		<div class="m" data-jc="textbox" data-jc-path="icon" data-jc-config="placeholder:">@(Icon for push button (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a>))</div>
+		<div class="m" data-jc="textbox" data-jc-path="iconoff" data-jc-config="placeholder:">@(Icon for switch when off (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a>))</div>
+		<div class="m" data-jc="textbox" data-jc-path="iconon" data-jc-config="placeholder:">@(Icon for switch when on (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a>))</div>
+		<div data-jc="multioptions" data-jc-path="?">
+			<script type="text/plain">
+				option('background', 'Background Color', '#967ADC', 'Color');
+			</script>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" body>
+<div style="height:100%">
+	<div class="tablecell">
+		<div class="content">
+			<div class="icons"></div>
+			<div class="name"></div>
+		</div>
+	</div>
+</div>
+</script>
+
+<script>
+exports.name = 'switch';
+exports.title = 'Switch';
+exports.icon = 'fa-toggle-on';
+exports.author = 'Martin Smola';
+exports.group = 'Devices';
+exports.options = { background: '#967ADC' };
+exports.version = '1.0.0';
+
+exports.install = function(instance) {
+
+	var subtype = '';
+	var $name, $icons;
+	var icontemplate = '<i class="fa {0} fa-fw"></i>';	
+	var timeout;
+
+	instance.on('resize', function(size) {
+		instance.element.css('font-size', ((size.height / 100) * 16) + 'px');
+		$name.width(size.width - 20 + 'px');
+		$icons.css('font-size', ((size.height / 3)) + 'px');
+	});
+
+	instance.on('data', function(response) {
+
+		var options = instance.options;
+		var device = response.body;
+		subtype = device.subtype;
+
+		if (RELEASE && (!options.id || response.id !== options.id || response.type !== 'status'))
+			return;
+
+		var template = '';
+
+		if (subtype === 'toggle')
+			template = icontemplate.format(device.on ? (options.iconon || 'fa-toggle-on') : (options.iconoff || 'fa-toggle-off'));
+		else if (subtype === 'push')
+			template = icontemplate.format(options.icon || 'fa-circle');
+
+		var t2 = new Date().getTime() - 1000;
+		if (timeout < t2) {
+			doit();
+		} else {
+			setTimeout(doit, timeout - t2);
+		}
+
+		function doit() {
+			$icons.html(template);
+		}
+
+		$name.text(options.name || device.name || 'Switch');			
+			
+	});
+
+	instance.reconfigure = function() {
+
+		var options = instance.options;
+
+		instance.element.css('background-color', options.background);
+		instance.emit('resize', instance.size);
+		instance.options.id && instance.send(instance.options.id, 'status');
+	};
+
+	instance.make = function() {
+
+		instance.element.addClass('dashboardswitch');
+
+		$name = instance.element.find('.name');
+		$icons = instance.element.find('.icons');
+
+		instance.reconfigure();
+
+		instance.element.on('click', function(){
+			setTimeout2(instance.id, function(){
+				$icons.html(icontemplate.format('fa-spinner fa-spinquick'));
+				timeout = new Date().getTime();
+				instance.options.id && instance.send(instance.options.id, 'click');
+			}, 50);
+		});	
+	};
+
+	instance.on('options', instance.reconfigure);
+};
+</script>
