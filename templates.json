@@ -14,12 +14,12 @@
 },{
 	"name": "Miscellaneous",
 	"items": [
-		"https://rawgit.com/totaljs/dashboardcomponents/master/time/time.html",
-		"https://rawgit.com/totaljs/dashboardcomponents/master/button/button.html"
+		"https://rawgit.com/totaljs/dashboardcomponents/master/time/time.html"
 	]
 },{
 	"name": "Devices",
 	"items": [
+		"https://rawgit.com/totaljs/dashboardcomponents/master/device_switch/device_switch.html",
 		"https://rawgit.com/totaljs/dashboardcomponents/master/device_outlet/device_outlet.html",
 		"https://rawgit.com/totaljs/dashboardcomponents/master/device_light/device_light.html",
 		"https://rawgit.com/totaljs/dashboardcomponents/master/device_thermostat/device_thermostat.html"
