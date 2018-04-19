@@ -3,19 +3,8 @@
 .dashboardoutlet .content { display: table-cell; vertical-align: middle; text-align: center; cursor: pointer; padding-top: 3px; }
 .dashboardoutlet .error { color: red; }
 .dashboardoutlet .svg { margin: 0 auto; height: 50%; }
-.dashboardoutlet .name { text-overflow: ellipsis; white-space: nowrap; overflow:hidden; padding-left: 3px; padding-right: 3px; }
-
-@keyframes rotatingsocket {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-.dashboardoutlet .rotating {
-  animation: rotatingsocket 1s linear infinite;
-}
+.dashboardoutlet .name { text-overflow: ellipsis; white-space: nowrap; overflow:hidden; padding-left: 3px; padding-right: 3px; margin: 0 auto; }
+.dashboardoutlet .fa-spinquick { -webkit-animation: fa-spin 1s infinite linear; animation: fa-spin 1s infinite linear; }
 </style>
 
 <script type="text/html" settings>
@@ -33,6 +22,9 @@
 <div style="height:100%">
 	<div class="tablecell">
 		<div class="content">
+			<div class="spinner hidden" style="margin-top:-4px;margin-bottom:-4px;">
+				<i class="fa fa-spinner fa-spinquick fa-fw"></i>
+			</div>
 			<div class="svg">
 				<svg class="on hidden" viewBox="0 0 1000 1000" style="fill:#fff;">
 					<path d="M322.8,500c0,28.8,23.4,52.1,52.1,52.1S427,528.8,427,500s-23.4-52.1-52.1-52.1S322.8,471.2,322.8,500z M573,500c0,28.8,23.4,52.1,52.1,52.1s52.1-23.4,52.1-52.1s-23.4-52.1-52.1-52.1S573,471.2,573,500z M10,906.6c0,46.1,37.3,83.4,83.4,83.4h813.2c46.1,0,83.4-37.3,83.4-83.4l0-813.2c0-46.1-37.3-83.4-83.4-83.4L93.4,10C47.3,10,10,47.3,10,93.4V906.6L10,906.6z M218.5,500c0-155.5,125.9-281.5,281.5-281.5S781.5,344.5,781.5,500S655.5,781.5,500,781.5S218.5,655.5,218.5,500z" />
@@ -64,14 +56,15 @@ exports.version = '1.0.0';
 exports.install = function(instance) {
 
 	var type = '';
-	var $name, $svg;
-	var $on, $off;
+	var $name, $svg, $svgwrapper;
+	var $on, $off, $spinner;
 	var timeout = 0;
 
 	instance.on('resize', function(size) {
 		instance.element.css('font-size', ((size.height / 100) * 16) + 'px');
-		$name.width(size.width - 20 + 'px');
+		$name.width(size.width - 10 + 'px');
 		$svg.css('width', (size.height / 3) + 'px');
+		$spinner.css('font-size', ((size.height / 3)) + 'px');
 	});
 
 	instance.on('data', function(response) {
@@ -91,7 +84,8 @@ exports.install = function(instance) {
 		}
 
 		function doit() {
-			$svg.rclass('rotating');
+			$spinner.aclass('hidden');
+			$svgwrapper.rclass('hidden');
 			$on.tclass('hidden', !device.on);
 			$off.tclass('hidden', !!device.on);
 		}	
@@ -100,7 +94,6 @@ exports.install = function(instance) {
 	instance.reconfigure = function() {
 
 		var options = instance.options;
-
 		instance.element.css('background-color', options.background);
 		instance.emit('resize', instance.size);
 		instance.options.id && instance.send(instance.options.id, 'status');
@@ -112,14 +105,17 @@ exports.install = function(instance) {
 
 		$name = instance.element.find('.name');
 		$svg = instance.element.find('svg');
+		$svgwrapper = instance.element.find('.svg');
 		$on = instance.element.find('.on');
 		$off = instance.element.find('.off');
+		$spinner = instance.element.find('.spinner');
 
 		instance.reconfigure();
 
 		instance.element.on('click', function(){
-
-			$svg.aclass('rotating');
+			
+			$svgwrapper.aclass('hidden');
+			$spinner.rclass('hidden');
 			timeout = new Date().getTime();
 
 			setTimeout2(instance.id, function(){

@@ -3,19 +3,8 @@
 .dashboardlight .content { display: table-cell; vertical-align: middle; text-align: center; cursor: pointer; padding-top: 3px; }
 .dashboardlight .error { color: red; }
 .dashboardlight .svg { margin: 0 auto; height: 50%; }
-.dashboardlight .name { text-overflow: ellipsis; white-space: nowrap; overflow:hidden; padding-left: 3px; padding-right: 3px; }
-
-@keyframes rotatinglight {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-.dashboardlight .rotating {
-  animation: rotatinglight 1s linear infinite;
-}
+.dashboardlight .name { text-overflow: ellipsis; white-space: nowrap; overflow:hidden; padding-left: 3px; padding-right: 3px; margin: 0 auto; }
+.dashboardlight .fa-spinquick { -webkit-animation: fa-spin 1s infinite linear; animation: fa-spin 1s infinite linear; }
 </style>
 
 <script type="text/html" settings>
@@ -33,6 +22,9 @@
 <div style="height:100%">
 	<div class="tablecell">
 		<div class="content">
+			<div class="spinner hidden" style="margin-top:-4px;margin-bottom:-4px;">
+				<i class="fa fa-spinner fa-spinquick fa-fw"></i>
+			</div>
 			<div class="svg">
 				<svg viewBox="0 0 512 512">
 					<path class="activelight" style="opacity:1;fill:#ffff00;fill-opacity:1;stroke:none;stroke-width:53;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" d="m 136.98761,60.965978 115.23638,-50.131882 111.2125,44.540552 54.48914,114.325742 -41.4427,104.66805 -21.4589,83.78367 -93.80137,1.0815 -101.86973,-0.0633 L 135.65904,275.44295 92.809814,172.7427 Z"/>
@@ -57,14 +49,15 @@ exports.version = '1.0.0';
 exports.install = function(instance) {
 
 	var type = '';
-	var $name, $svg;
+	var $name, $svg, $svgwrapper;
 	var $on;
 	var timeout = 0;
 
 	instance.on('resize', function(size) {
 		instance.element.css('font-size', ((size.height / 100) * 16) + 'px');
-		$name.width(size.width - 20 + 'px');
+		$name.width(size.width - 10 + 'px');
 		$svg.css('width', (size.height / 3) + 'px');
+		$spinner.css('font-size', ((size.height / 3)) + 'px');
 	});
 
 	instance.on('data', function(response) {
@@ -84,7 +77,8 @@ exports.install = function(instance) {
 		}
 
 		function doit() {
-			$svg.rclass('rotating');
+			$spinner.aclass('hidden');
+			$svgwrapper.rclass('hidden');
 			$on.tclass('hidden', !device.on);
 		}	
 	});
@@ -104,13 +98,16 @@ exports.install = function(instance) {
 
 		$name = instance.element.find('.name');
 		$svg = instance.element.find('svg');
+		$svgwrapper = instance.element.find('.svg');
 		$on = instance.element.find('.activelight');
+		$spinner = instance.element.find('.spinner');
 
 		instance.reconfigure();
 
 		instance.element.on('click', function(){
 
-			$svg.aclass('rotating');
+			$svgwrapper.aclass('hidden');
+			$spinner.rclass('hidden');
 			timeout = new Date().getTime();
 
 			setTimeout2(instance.id, function(){
