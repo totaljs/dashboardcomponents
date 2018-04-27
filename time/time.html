@@ -1,14 +1,21 @@
 <style>
 .dashboardtime .tablecell { height: 100%; display: table; width: 100%; color: white; }
 .dashboardtime .content { display: table-cell; vertical-align: middle; text-align: center; }
+.dashboardtime .time { float: left; width: 100%; }
+.dashboardtime .date { float: left; width: 100%; }
 </style>
 
 <script type="text/html" settings>
 	<div class="padding">
-		<div class="m" data-jc="textbox" data-jc-path="format" data-jc-config="placeholder:HH:mm">@(Format)</div>
+		<div class="m" data-jc="textbox" data-jc-path="formattime" data-jc-config="placeholder:HH\:mm">@(Time format)</div>
+		<div class="m" data-jc="textbox" data-jc-path="formatdate" data-jc-config="placeholder:dd.MM.yyyy">@(Date format)</div>
 		<div data-jc="multioptions" data-jc-path="?">
 			<script type="text/plain">
+				option('showdate', 'Show date', true);
+				option('divider1');
+				option('transparent', 'Transparent Background', false);
 				option('background', 'Background Color', '#967ADC', 'Color');
+				option('fontcolor', 'Text Color', '#F5F7FA', 'Color');
 			</script>
 		</div>
 	</div>
@@ -17,14 +24,12 @@
 <script type="text/html" body>
 <div style="height:100%">
 	<div class="tablecell">
-		<div class="content"></div>
+		<div class="content">			
+			<div class="time"></div>
+			<div class="date"></div>
+		</div>
 	</div>
 </div>
-</script>
-
-<!-- DEMO DATA -->
-<script type="text/json">
-"12:00"
 </script>
 
 <script>
@@ -41,24 +46,28 @@ exports.install = function(instance) {
 	var template = null;	
 
 	instance.on('resize', function(size) {
-		h = (size.height / 100) * 70;
-		template.value.css('font-size', ((h / 100) * 70) + 'px');
+		var w = ((size.width > size.height ? size.height : size.width) / 100) * 70;
+		template.time.css('font-size', ((w / 100) * 35) + 'px');
+		template.date.css('font-size', ((w / 100) * 25) + 'px');
 	});
 
 	instance.reconfigure = function() {
 		var options = instance.options;
-		instance.element.css('background-color', options.background);
-
+		instance.element.css('background-color', options.transparent ? 'transparent' : options.background);
+		instance.transparent(options.transparent);
+		template.time.css('color', options.fontcolor);
+		template.date.tclass('hidden', !options.showdate);
 		instance.emit('resize', instance.size);
 	};
 
 	instance.make = function() {
 		instance.element.addClass('dashboardtime');
-		template = VIRTUALIZE(instance.element, { value: '.content' });
+		template = VIRTUALIZE(instance.element, { time: '.time', date: '.date' });
 		instance.reconfigure();
 
 		setInterval(function(){
-			template.value.html(new Date().format(instance.options.format || 'HH:mm'));
+			template.time.html(new Date().format(instance.options.formattime || 'HH:mm'));
+			template.date.html(new Date().format(instance.options.formatdate || 'dd.MM.yyyy'));
 		}, 1000);
 	};
 
