@@ -1,185 +1,493 @@
+<style type="text/css">
+.ui-linechart { position: relative; padding: 0; }
+.ui-linechart svg { shape-rendering: geometricPrecision; }
+.ui-linechart .line1 { stroke: #3182BD; stroke-width: 2.5; fill: transparent; }
+.ui-linechart .line1fill { fill: #3182BD; }
+.ui-linechart .line2 { stroke: #FD8D3C; stroke-width: 2.5; fill: transparent; }
+.ui-linechart .line2fill { fill:#FD8D3C; }
+.ui-linechart .line3 { stroke: #74C476; stroke-width: 2.5; fill: transparent; }
+.ui-linechart .line3fill {fill:#74C476; }
+.ui-linechart .line4 { stroke: #9E9AC8; stroke-width: 2.5; fill: transparent; }
+.ui-linechart .line4fill { fill:#9E9AC8; }
+.ui-linechart .line5 { stroke: #969696; stroke-width: 2.5; fill: transparent; }
+.ui-linechart .line5fill { fill: #969696;}
+.ui-linechart .points circle { cursor: pointer; }
+.ui-linechart .point1 { stroke: #3182BD; stroke-width: 2; fill: white; }
+.ui-linechart .point2 { stroke: #FD8D3C; stroke-width: 2; fill: white; }
+.ui-linechart .point3 { stroke: #74C476; stroke-width: 2; fill: white; }
+.ui-linechart .point4 { stroke: #9E9AC8; stroke-width: 2; fill: white; }
+.ui-linechart .point5 { stroke: #969696; stroke-width: 2; fill: white; }
+.ui-linechart .axis { stroke: #E0E0E0; shape-rendering: optimizeSpeed; }
+.ui-linechart .axis-avg { stroke: black; stroke-width: 2; shape-rendering: optimizeSpeed; }
+.ui-linechart .selected { opacity: 0.8; filter: alpha(opacity=80); }
+.ui-linechart .xlabel { font-size: 11px; fill: gray; }
+.ui-linechart .ylabel { font-size: 11px; fill: #A0A0A0; }
+.ui-linechart .ylabel-avg { font-size: 11px; fill: black; }
+.ui-linechart .selected { font-size: 16px; fill: black; font-weight: bold; }
+.linechart { background-color: white; }
+.linechart .chart { padding: 15px 10px 10px 15px; }
+.linechart .legend { position: absolute; background-color: white; font-size: 50%; color: black; padding: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 2; left: 20px; top: 55px; border: 1px solid #E0E0E0; border-radius: 3px; }
+.linechart .legend .fa { margin-right: 5px; }
+.linechart .legend1 { color: #3182BD; }
+.linechart .legend2 { color: #FD8D3C; }
+.linechart .legend3 { color: #74C476; }
+.linechart .legend4 { color: #9E9AC8; }
+.linechart .legend5 { color: #969696; }
+.themedark .linechart { background-color: #303030; }
+.themedark .linechart .legend { background-color: #202020; color: #A0A0A0; border-color: #101010; }
+.themedark .ui-linechart .axis { stroke: #404040; }
+.themedark .ui-linechart .selected { fill: white; }
+.themedark .ui-linechart .ylabel-avg { font-size: 11px; fill: white; }
+.themedark .ui-linechart .axis-avg { stroke: white; }
+</style>
+
 <script type="text/html" settings>
 	<div class="padding">
-        <div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="datasource:common.instances;empty:;if:n => n.component === 'dashboardanalytics';required:true">@(Flow instance)</div>
+		<div data-jc="selectbox__instances__datasource:common.instances --> linechart_analytics;required:true;search:@(Find a specific component)">@(Main Flow instance)</div>
+		<div class="help m">@(Choose max. 5 instances)</div>
 		<div data-jc="multioptions" data-jc-path="?">
 			<script type="text/plain">
-				option('background', 'Background Color', '#8CC152', 'Color');
-				option('type', 'Type', 'days', ['hours', 'days', 'months', 'years']);
-				option('high', 'High value', null, 'Number');
-				option('low', 'Low value', null, 'Number');
-				option('showArea', 'Show area', true);
-				option('showPoint', 'Show point', true);
-				option('showLine', 'Show line', true);
-				option('smoothCurves', 'No smooth curves', true);
-				option('XshowLabel', 'Axis X: Show Label', true);
-				option('XshowGrid', 'Axis X: Show Grid', true);
-				option('YshowLabel', 'Axis Y: Show Label', true);
-				option('YshowGrid', 'Axis Y: Show Grid', false);
-				option('onlyInteger', 'Whole numbers', true);
-				option('dateFormat', 'Date format', 'dd.MM', ['HH:mm', 'dd', 'ddd', 'dd.MM', 'dd.MM.yyyy', 'MMMM', 'MM.yyyy']);
-				option('formatter', 'Format', '{0}');
-				option('decimals', 'Decimals', 1);
-				option('reverse', 'Reverse', false);
+				option('title', 'Title', '');
+				option('type', 'Type', 'normal', ['normal', 'step', 'curves']);
+				option('fill', 'Fill', true);
+				option('axisX', 'Axis X', true);
+				option('axisY', 'Axis Y', true);
+				option('limit', 'Limit', 0);
 			</script>
 		</div>
 	</div>
 </script>
 
-<style type="text/css">
-	.dashboardlinechart .ct-label { font-size: 1rem; }
-	.dashboardlinechart .ct-label.ct-horizontal.ct-end { transform: translate(-50%,0); display: block; text-align: center; }
-	.dashboardlinechart .title { float: left; width: 100%; text-align: center; color: #fff; font-size: 1.5em; padding-top: 5px; margin-bottom: -10px; }
-	.dashboardlinechart .chartwrapper { float: left; width: 100%; height: 100%; padding-bottom: 20px; }
-	.dashboardlinechart .chart { width: 100%; height: 100%; }
-</style>
-
 <script type="text/html" body>
-	<div style="height:100%">
-		<div class="title"></div>
-		<div class="chartwrapper">
-			<div class="chart"></div>
-		</div>
-	</div>
-</script>
-
-<!-- DEMO DATA -->
-<script type="text/json">
-{ "id": "1491574013480", "hours": [ { "year": 2017, "month": 6, "day": 29, "hour": 0, "count": 60, "value": 26.5, "datecreated": "2017-07-06T06:03:15.362Z", "id": 2017062900 }, { "year": 2017, "month": 6, "day": 28, "hour": 0, "count": 144, "value": 35.9, "datecreated": "2017-06-28T22:00:51.492Z", "id": 2017062800 }, { "year": 2017, "month": 6, "day": 27, "hour": 0, "count": 144, "value": 35.6, "datecreated": "2017-06-27T22:00:48.824Z", "id": 2017062700 }, { "year": 2017, "month": 6, "day": 26, "hour": 0, "count": 136, "value": 29.7, "datecreated": "2017-06-26T22:00:13.651Z", "id": 2017062600 }, { "year": 2017, "month": 6, "day": 25, "hour": 0, "count": 132, "value": 34.9, "datecreated": "2017-06-25T22:00:56.310Z", "id": 2017062500 }, { "year": 2017, "month": 6, "day": 24, "hour": 0, "count": 135, "value": 33.2, "datecreated": "2017-06-24T22:00:14.975Z", "id": 2017062400 }, { "year": 2017, "month": 6, "day": 23, "hour": 0, "count": 144, "value": 27.3, "datecreated": "2017-06-23T22:00:36.155Z", "id": 2017062300 }, { "year": 2017, "month": 6, "day": 22, "hour": 0, "count": 144, "value": 35.1, "datecreated": "2017-06-22T22:00:33.585Z", "id": 2017062200 }, { "year": 2017, "month": 6, "day": 21, "hour": 0, "count": 144, "value": 34.4, "datecreated": "2017-06-21T22:00:30.990Z", "id": 2017062100 }, { "year": 2017, "month": 6, "day": 20, "hour": 0, "count": 143, "value": 35, "datecreated": "2017-06-20T22:00:28.383Z", "id": 2017062000 }, { "year": 2017, "month": 6, "day": 19, "hour": 0, "count": 144, "value": 33, "datecreated": "2017-06-19T22:00:25.771Z", "id": 2017061900 }, { "year": 2017, "month": 6, "day": 18, "hour": 0, "count": 144, "value": 25, "datecreated": "2017-06-18T22:00:23.132Z", "id": 2017061800 }, { "year": 2017, "month": 6, "day": 17, "hour": 0, "count": 138, "value": 21.2, "datecreated": "2017-06-17T22:00:20.489Z", "id": 2017061700 }, { "year": 2017, "month": 6, "day": 16, "hour": 0, "count": 144, "value": 24.1, "datecreated": "2017-06-16T22:00:17.844Z", "id": 2017061600 }, { "year": 2017, "month": 6, "day": 15, "hour": 0, "count": 143, "value": 30.3, "datecreated": "2017-06-15T22:00:15.227Z", "id": 2017061500 }, { "year": 2017, "month": 6, "day": 14, "hour": 0, "count": 144, "value": 28.8, "datecreated": "2017-06-14T22:00:54.924Z", "id": 2017061400 }, { "year": 2017, "month": 6, "day": 13, "hour": 0, "count": 144, "value": 29.9, "datecreated": "2017-06-13T22:00:52.373Z", "id": 2017061300 }, { "year": 2017, "month": 6, "day": 12, "hour": 0, "count": 144, "value": 30.3, "datecreated": "2017-06-12T22:00:49.763Z", "id": 2017061200 }, { "year": 2017, "month": 6, "day": 11, "hour": 0, "count": 144, "value": 31, "datecreated": "2017-06-11T22:00:47.124Z", "id": 2017061100 }, { "year": 2017, "month": 6, "day": 10, "hour": 0, "count": 144, "value": 30.9, "datecreated": "2017-06-10T22:00:44.522Z", "id": 2017061000 }, { "year": 2017, "month": 6, "day": 9, "hour": 0, "count": 144, "value": 30.3, "datecreated": "2017-06-09T22:00:41.923Z", "id": 2017060900 }, { "year": 2017, "month": 6, "day": 8, "hour": 0, "count": 143, "value": 30.2, "datecreated": "2017-06-08T22:00:39.383Z", "id": 2017060800 }, { "year": 2017, "month": 6, "day": 7, "hour": 0, "count": 143, "value": 24.3, "datecreated": "2017-06-07T22:00:23.718Z", "id": 2017060700 }, { "year": 2017, "month": 6, "day": 6, "hour": 0, "count": 144, "value": 29.5, "datecreated": "2017-06-06T22:00:21.050Z", "id": 2017060600 } ], "days": [ { "year": 2017, "month": 6, "day": 29, "hour": 0, "count": 60, "value": 26.5, "datecreated": "2017-07-06T06:03:15.362Z", "id": 20170629 }, { "year": 2017, "month": 6, "day": 28, "hour": 0, "count": 144, "value": 35.9, "datecreated": "2017-06-28T22:00:51.492Z", "id": 20170628 }, { "year": 2017, "month": 6, "day": 27, "hour": 0, "count": 144, "value": 35.6, "datecreated": "2017-06-27T22:00:48.824Z", "id": 20170627 }, { "year": 2017, "month": 6, "day": 26, "hour": 0, "count": 136, "value": 29.7, "datecreated": "2017-06-26T22:00:13.651Z", "id": 20170626 }, { "year": 2017, "month": 6, "day": 25, "hour": 0, "count": 132, "value": 34.9, "datecreated": "2017-06-25T22:00:56.310Z", "id": 20170625 }, { "year": 2017, "month": 6, "day": 24, "hour": 0, "count": 135, "value": 33.2, "datecreated": "2017-06-24T22:00:14.975Z", "id": 20170624 }, { "year": 2017, "month": 6, "day": 23, "hour": 0, "count": 144, "value": 27.3, "datecreated": "2017-06-23T22:00:36.155Z", "id": 20170623 }, { "year": 2017, "month": 6, "day": 22, "hour": 0, "count": 144, "value": 35.1, "datecreated": "2017-06-22T22:00:33.585Z", "id": 20170622 }, { "year": 2017, "month": 6, "day": 21, "hour": 0, "count": 144, "value": 34.4, "datecreated": "2017-06-21T22:00:30.990Z", "id": 20170621 }, { "year": 2017, "month": 6, "day": 20, "hour": 0, "count": 143, "value": 35, "datecreated": "2017-06-20T22:00:28.383Z", "id": 20170620 }, { "year": 2017, "month": 6, "day": 19, "hour": 0, "count": 144, "value": 33, "datecreated": "2017-06-19T22:00:25.771Z", "id": 20170619 }, { "year": 2017, "month": 6, "day": 18, "hour": 0, "count": 144, "value": 25, "datecreated": "2017-06-18T22:00:23.132Z", "id": 20170618 }, { "year": 2017, "month": 6, "day": 17, "hour": 0, "count": 138, "value": 21.2, "datecreated": "2017-06-17T22:00:20.489Z", "id": 20170617 }, { "year": 2017, "month": 6, "day": 16, "hour": 0, "count": 144, "value": 24.1, "datecreated": "2017-06-16T22:00:17.844Z", "id": 20170616 } ], "months": [ { "year": 2017, "month": 6, "day": 1, "hour": 0, "count": 144, "value": 35.9, "datecreated": "2017-06-01T22:00:16.990Z", "id": 201706 }, { "year": 2017, "month": 5, "day": 1, "hour": 0, "count": 144, "value": 33.4, "datecreated": "2017-05-01T22:00:52.978Z", "id": 201705 }, { "year": 2017, "month": 4, "day": 7, "hour": 16, "count": 51, "value": 22.2, "datecreated": "2017-04-07T22:00:11.310Z", "id": 201704 } ], "years": [ { "year": 2017, "month": 4, "day": 7, "hour": 16, "count": 51, "value": 35.9, "datecreated": "2017-04-07T22:00:11.310Z", "id": 2017 } ], "period": "hourly", "type": "max", "format": "{0} °C", "decimals": 0, "hourslength": 24, "dayslength": 14, "monthslength": 12, "yearslength": 5 }
+	<header>
+		<button name="settings"><i class="fa fa-cog"></i></button>
+		<button name="legend"><i class="fa fa-question-circle-o"></i></button>
+		<button name="years">@(Y)</button>
+		<button name="months">@(M)</button>
+		<button name="days">@(D)</button>
+		<button name="hours">@(H)</button>
+		<label></label>
+	</header>
+	<div class="legend hidden"></div>
+	<div class="chart"></div>
 </script>
 
 <script>
-exports.name = 'linechart';
+exports.name = 'linerchart';
 exports.title = 'Line chart';
 exports.icon = 'fa-line-chart';
 exports.author = 'Peter Širka';
 exports.group = 'Analytics';
-exports.options = { id: null, background: '#434A54', type: 'days', high: null, low: null, showArea: true, showPoint: true, showLine: true, smoothCurves: true, XshowLabel: true, XshowGrid: true, YshowLabel: true, YshowGrid: false, onlyInteger: true, dateFormat: 'dd.MM', formatter: '{0}', decimals: 1 };
-exports.version = '1.1.0';
+exports.options = { instances: [], title: '@(Line chart)', fill: false, type: 'normal', limit: 0, axisY: true, axisX: true };
+exports.version = '1.0.0';
 
 exports.install = function(instance) {
 
-	var chart, backup;
+	var padding = 25;
+	var data = {};
+	var can = {};
+	var init = false;
+	var type = CACHE(instance.id) || 'days';
 
-	instance.shade = function(color, percent) {
-		var R = parseInt(color.substring(1,3),16);
-		var G = parseInt(color.substring(3,5),16);
-		var B = parseInt(color.substring(5,7),16);
+	instance.on('data', function(response) {
 
-		R = parseInt(R * (100 + percent) / 100);
-		G = parseInt(G * (100 + percent) / 100);
-		B = parseInt(B * (100 + percent) / 100);
-
-		R = (R<255)?R:255;
-		G = (G<255)?G:255;
-		B = (B<255)?B:255;
-
-		var RR = ((R.toString(16).length==1)?'0'+R.toString(16):R.toString(16));
-		var GG = ((G.toString(16).length==1)?'0'+G.toString(16):G.toString(16));
-		var BB = ((B.toString(16).length==1)?'0'+B.toString(16):B.toString(16));
-
-		return '#' + RR + GG + BB;
-	};
-
-	instance.on('data', function(response, fromresize) {
-
-		if (RELEASE && (!instance.options.id || response.id !== instance.options.id || response.type !== 'stats'))
+		if (response.type !== 'stats')
 			return;
 
-		backup = response;
+		if (RELEASE && !can[response.id])
+			return;
+
+		response.body.days.reverse();
+		response.body.hours.reverse();
+		response.body.months.reverse();
+		response.body.years.reverse();
+
+		data[response.id] = response.body;
+		setTimeout2(instance.id, instance.redraw, 500);
+	});
+
+	instance.redraw = function() {
 
 		var size = instance.size;
-		var data = {};
-		var value = response.body;
+		var count = (size.width / 60) >> 0;
+		var response = [];
+		var legend = instance.find('.legend').empty();
 
-		!fromresize && instance.options.reverse && value[instance.options.type].reverse();
+		if (DEBUG) {
+			for (var i = 0; i < count; i++) {
+				var item = data.days[i];
+				output.push({ x: item.day, y: item.value });
+			}
+		} else {
+			var keys = Object.keys(can);
+			for (var j = 0; j < keys.length; j++) {
+				var key = keys[j];
+				var arr = data[key];
+				var output = [];
 
-		data.labels = [];
-		data.series = [[]];
+				if (type === 'hours') {
+					for (var i = count; i >= 0; i--) {
+						var dt = new Date().add('-' + i + ' hours');
+						var date = +dt.format('yyyyMMddHH');
+						var item = arr ? arr.hours.findItem('id', date) : null;
+						output.push({ x: dt.format('HH') + ':00', y: item ? item.value : 0 });
+					}
+				} else if (type === 'months') {
+					for (var i = count; i >= 0; i--) {
+						var dt = new Date().add('-' + i + ' months');
+						var date = +dt.format('yyyyMM');
+						var item = arr ? arr.months.findItem('id', date) : null;
+						output.push({ x: dt.format('MMM'), y: item ? item.value : 0 });
+					}
+				} else if (type === 'years') {
+					for (var i = count; i >= 0; i--) {
+						var dt = new Date().add('-' + i + ' years');
+						var date = +dt.format('yyyy');
+						var item = arr ? arr.years.findItem('id', date) : null;
+						output.push({ x: dt.format('yyyy'), y: item ? item.value : 0 });
+					}
+				} else {
+					// days
+					for (var i = count; i >= 0; i--) {
+						var dt = new Date().add('-' + i + ' days');
+						var date = +dt.format('yyyyMMdd');
+						var item = arr ? arr.days.findItem('id', date) : null;
+						output.push({ x: dt.format('dd.MM.'), y: item ? item.value : 0 });
+					}
+				}
 
-		var c = (size.width / 40) >> 0;
-		var l = value[instance.options.type].length;
-		if (c < l)
-			value[instance.options.type] = value[instance.options.type].ticks(c);
-
-		value[instance.options.type].forEach(function(item) {
-			data.labels.push(item.datecreated.format(instance.options.dateFormat));
-			data.series[0].push(item.value);
-		});
-
-		if (chart) {
-			chart.update(data);
-			return;
+				legend.append('<div><i class="fa fa-square legend{0}"></i>{1}</div>'.format(j + 1, arr.name));
+				response.push({ name: arr.name, values: output });
+			}
 		}
 
-		setTimeout2('redraw' + instance.id, function() {
+		SET('linechart{0}'.format(instance.id), response);
+	};
 
-			var options = {};
-			var opt = instance.options;
-
-			options.fullWidth = true;
-			options.chartPadding = { left: 0, right: 20, bottom: 0, top: 20 };
-			options.showArea = opt.showArea;
-			options.showLine = opt.showLine;
-			options.showPoint = opt.showPoint;
-
-			if (opt.smoothCurves)
-				options.lineSmooth = Chartist.Interpolation.step();
-
-			opt.low && (options.low = opt.low);
-			opt.high && (options.high = opt.high);
-			options.axisY = {};
-			options.axisY.labelInterpolationFnc = function(v) {
-				return opt.formatter.format(v.format(opt.decimals));
-			};
-			options.axisY.onlyInteger = opt.onlyInteger;
-			options.axisY.showGrid = opt.YshowGrid;
-			options.axisY.showLabel = opt.YshowLabel;
-			options.axisX = {};
-			options.axisX.showGrid = opt.XshowGrid;
-			options.axisX.showLabel = opt.XshowLabel;
-			options.axisX.position = 'middle';
-			options.width = size.width - 16;
-			options.height = size.height - 40;
-			chart = new Chartist.Line(instance.element.find('.chart').get(0), data, options);
-			instance.find('.title').html(value.name || 'Chart title');
-		}, 500);
-	});
-
-	instance.on('destroy', function() {
-		$('#style' + instance.id).remove();
-	});
+	instance.getConfig = function() {
+		var size = instance.size;
+		var options = instance.options;
+		return 'width:{width};height:{height};type:{type};limit:{limit};fill:{fill};axisX:{axisX};axisY:{axisY};pr:20'.arg({ width: size.width - (padding + 10), height: size.height - padding - 40, type: options.type, limit: options.limit, fill: options.fill, axisX: options.axisX, axisY: options.axisY });
+	};
 
 	instance.reconfigure = function() {
-		var options = instance.options;
-		var color = options.background;
-		var area = instance.shade(color, 20);
-		var line = instance.shade(color, 20);
-		var point = instance.shade(color, -20);
-		$('#style' + instance.id).remove();
-		$('<style type="text/css" id="style{0}">{1}</style>'.format(instance.id, '.style{3} .ct-series-a .ct-area{fill:#FFFFFF}\n.style{3} .ct-series-a .ct-line{stroke:{1};}\n.style{3} .ct-series-a .ct-point{stroke:#FFFFFF;}.ct-label{color:#FFFFFF;}.style{3} .ct-grid{stroke:#FFFFFF;stroke-opacity:.2}'.format(area, line, point, instance.id))).appendTo('head');
-		instance.css('background-color', color);
-		chart && chart.detach();
-		chart = null;
 
-		// Refresh data
-		options.id && instance.send(options.id, 'stats');
+		can = {};
+
+		var options = instance.options;
+		var size = instance.size;
+
+		for (var i = 0; i < options.instances.length; i++) {
+			var id = options.instances[i];
+			can[id] = 1;
+			setTimeout(function(id) {
+				instance.send(id, 'stats');
+			}, 100 * (i + 1), id);
+		}
+
+		instance.find('header label').text(options.title);
+		init && instance.element.RECONFIGURE('linechart', instance.getConfig());
 	};
 
 	instance.on('resize', function() {
-		chart && chart.detach();
-		chart = null;
-		backup && instance.emit('data', backup, true);
+		var size = instance.size;
+		instance.element.RECONFIGURE('linechart', 'width:{0};height:{1}'.format(size.width - (padding + 10), size.height - padding - 40));
+		instance.redraw();
 	});
 
 	instance.make = function() {
-		instance.element.aclass('dashboardlinechart style' + instance.id);
+		instance.aclass('linechart');
+		instance.find('.chart').append('<div data-jc="linechart__linechart{0}__{1}"></div>'.format(instance.id, instance.getConfig()));
 		instance.reconfigure();
+		init = true;
+		COMPILE();
+
+		instance.event('click', 'button', function() {
+			var btn = $(this);
+			var name = btn.attr('name');
+			switch (name) {
+				case 'settings':
+					instance.settings();
+					break;
+				case 'legend':
+					instance.find('.legend').tclass('hidden');
+					break;
+				case 'days':
+				case 'months':
+				case 'years':
+				case 'hours':
+					type = name;
+					instance.redraw();
+					instance.find('header button.selected').rclass('selected');
+					btn.aclass('selected');
+					CACHE(instance.id, type, '1 month');
+					break;
+			}
+		});
+
+		instance.find('button[name="{0}"]'.format(type)).aclass('selected');
 	};
 
 	instance.on('options', instance.reconfigure);
 };
 
-// Dependencies
-IMPORT('ONCE https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.js');
-IMPORT('ONCE https://cdnjs.cloudflare.com/ajax/libs/chartist/0.11.0/chartist.min.css');
+window.linechart_analytics = function(arr) {
+	if (!arr || !arr.length)
+		return [];
+	var tmp = [];
+	for (var i = 0; i < arr.length; i++) {
+		var n = arr[i];
+		if (n.component === 'dashboardanalytics')
+			tmp.push(n);
+	}
+	return tmp;
+};
+
+COMPONENT('linechart', 'type:normal;pl:10;pr:10;pt:10;pb:25;prselected:0;limit:0;fill:false;point:5;fillopacity:0.1;offsetX:0;offsetY:10;selected:{{ value | format(0) }};templateY:{{ value | format(0) }};templateX:{{ value }};axisY:true;axisX:true;height:0;width:0', function(self, config) {
+
+	var svg, g, axis, selected, points, fills, selectedold;
+	var templateX, templateY, templateS;
+	var W = $(window);
+
+	self.readonly();
+	self.make = function() {
+		self.aclass('ui-linechart');
+		self.empty().append('<svg></svg>');
+		svg = self.find('svg');
+		axis = svg.asvg('g').attr('class', 'axisy');
+		fills = svg.asvg('g').attr('class', 'fills');
+		g = svg.asvg('g').attr('class', 'lines');
+		points = svg.asvg('g').attr('class', 'points');
+		selected = svg.asvg('text').attr('class', 'selected').attr('text-anchor', 'end');
+		W.on('resize', self.resize);
+
+		self.event('click mouseenter', 'circle', function(e) {
+
+			var circle = $(this);
+			var index = circle.attrd('index');
+
+			if (index === self.$selectedindex && e.type === 'mouseenter')
+				return;
+
+			self.$selectedindex = index;
+
+			var arr = index.split(',');
+			var item = self.get()[+arr[0]];
+			var value = item.values[+arr[1]];
+
+			selectedold && selectedold.animate({ r: config.point }, 100);
+			selected.text(templateS({ name: arr.name, x: value.x, y: value.y, value: value.y }));
+			selectedold = circle.animate({ r: config.point + 3 }, 100);
+
+			if (e.type === 'mouseenter') {
+				setTimeout2(self.id, function() {
+					selectedold && selectedold.animate({ r: config.point }, 100);
+					selectedold = null;
+					selected.text('');
+				}, 2000);
+			} else
+				clearTimeout2(self.id);
+		});
+
+	};
+
+	self.destroy = function() {
+		W.off('resize', self.resize);
+	};
+
+	self.resize = function() {
+		setTimeout2('resize.' + self.id, function() {
+			self.refresh();
+		}, 500);
+	};
+
+	self.configure = function(key, value, init) {
+		switch (key) {
+			case 'templateX':
+				templateX = Tangular.compile(value);
+				break;
+			case 'templateY':
+				templateY = Tangular.compile(value);
+				break;
+			case 'selected':
+				templateS = Tangular.compile(value);
+				break;
+			case 'width':
+			case 'height':
+				setTimeout2(self._id, function() {
+					self.refresh();
+				}, 100);
+				break;
+			default:
+				!init && self.resize();
+				break;
+		}
+	};
+
+	self.diagonal = function(x1, y1, x2, y2) {
+		return 'L' + x1 + ',' + y1 + 'C' + ((x1 + x2 ) / 2) + ',' + y1 + ' ' + ((x1 + x2) / 2) + ',' + y2 + ' ' + x2 + ',' + y2;
+	};
+
+	self.released = function(is) {
+		!is && setTimeout(self.refresh, 1000);
+	};
+
+	self.setter = function(value) {
+
+		if (!self.element.get(0).offsetParent) {
+			setTimeout(function() {
+				self.refresh();
+			}, 1000);
+			return;
+		}
+
+		if (!value) {
+			g.empty();
+			return;
+		}
+
+		var maxY = null;
+		var minY = null;
+		var labels = [];
+		var len = value.length;
+		var size = value[0].values.length;
+		var width = config.width ? config.width : self.element.width();
+		var height = config.height ? config.height : (width / 100) * 60;
+		var barwidth = ((width - config.point - (config.pl + config.pr)) / (size * len)).floor(2);
+
+		for (var i = 0; i < len; i++) {
+			var item = value[i];
+			labels.push(item.name);
+			for (var j = 0, length = item.values.length; j < length; j++) {
+				var val = item.values[j];
+				maxY = maxY == null ? val.y : maxY < val.y ? val.y : maxY;
+				minY = minY == null ? val.y : minY > val.y ? val.y : minY;
+			}
+		}
+
+		if (config.limit)
+			maxY = config.limit;
+
+		svg.attr('width', width).attr('height', height);
+		selected.attr('transform', 'translate({0},30)'.format(width - config.prselected));
+		selectedold = null;
+
+		g.empty();
+		axis.empty();
+		points.empty();
+		fills.empty();
+
+		var T = { value: null };
+		var lines = {};
+
+		if (minY < 0) {
+			minY = minY * -1;
+			maxY += minY;
+		} else
+			minY = 0;
+
+		lines.height = height - config.pt - config.pb;
+
+		// Y axis
+		for (var i = 5; i > 0; i--) {
+			var val = i * 20;
+			var y = ((lines.height / 100) * val) + config.pt;
+			config.axisY && axis.asvg('line').attr('x1', 0).attr('x2', width).attr('y1', y).attr('y2', y).attr('class', 'axis');
+			T.value = ((maxY / 100) * (100 - val)) - minY;
+			axis.asvg('text').aclass('ylabel').attr('transform', 'translate({0},{1})'.format(config.offsetX, y - config.offsetY)).text(templateY(T));
+		}
+
+		var offsetX = config.pl + config.point;
+		var posX = 0;
+		var offsetL = (len - 1) === 0 ? 0.5 : len - 1;
+		var data = [];
+		var fill = [];
+		var prev = [];
+
+		for (var j = 0; j < len; j++) {
+			data.push([]);
+			fill.push([]);
+		}
+
+		for (var i = 0, length = size; i < length; i++) {
+
+			for (var j = 0; j < len; j++) {
+				var item = value[j];
+				var val = item.values[i];
+				var sum = val.y + minY;
+
+				var y = (((sum / maxY) * 100) >> 0);
+				var x = posX;
+				var h = lines.height.inc('{0}%'.format(y));
+
+				x += offsetX;
+				T.value = val.y;
+
+				var r = (config.point / 2);
+				var mx = (x + ((barwidth * offsetL) - config.point)).floor(2);
+				var my = ((lines.height - h - r) + config.pt).floor(2);
+
+				if (prev[j] && config.type === 'step')
+					data[j].push('L{0} {1}'.format(mx, prev[j][1] + r));
+
+				if (config.type === 'curves') {
+					if (i)
+						data[j].push(self.diagonal(prev[j][0], prev[j][1], mx, my + r));
+					else
+						data[j].push('M{0} {1}'.format(mx, my + r));
+				} else
+					data[j].push((i ? 'L' : 'M') + '{0} {1}'.format(mx, my + r));
+
+				if (config.fill) {
+
+					if (prev[j] && config.type === 'step') {
+						!i && fill[j].push('M' + mx + ' ' + (lines.height + config.pt));
+						fill[j].push('L{0} {1}'.format(mx, prev[j][1]));
+					} else if (config.type === 'curves') {
+						if (i) {
+							fill[j].push(self.diagonal(prev[j][0], prev[j][1], mx, my));
+						} else {
+							fill[j].push('M' + mx + ' ' + (lines.height + config.pt));
+							fill[j].push('L{0} {1}'.format(mx, my));
+						}
+					} else {
+						!i && fill[j].push('M' + mx + ' ' + (lines.height + config.pt));
+						fill[j].push('L{0} {1}'.format(mx, my));
+					}
+
+					if (i === length - 1)
+						fill[j].push('L' + mx + ' ' + (lines.height + config.pt));
+				}
+
+				prev[j] = [mx, my];
+				points.asvg('circle').attr('cx', mx).attr('cy', my + config.point - r).attr('r', config.point).aclass('point' + (j + 1)).attrd('index', j + ',' + i);
+			}
+
+			T.value = val.x;
+			var text = templateX(T);
+			var ax = posX + offsetX + (barwidth * offsetL) - config.point;
+
+			config.axisX && axis.asvg('line').attr('x1', ax).attr('x2', ax).attr('y1', 0).attr('y2', height - 25).attr('class', 'axis');
+			g.asvg('text').aclass('xlabel').text(text).attr('text-anchor', 'middle').attr('transform', 'translate({0},{1})'.format(ax, height - 6));
+			posX += (len * barwidth);
+			offsetX += len;
+		}
+
+		if (typeof(config.avg) === 'number') {
+			var at = 100 - ((config.avg / maxY) * 100);
+			var ay = ((lines.height / 100) * at) + config.pt;
+			axis.asvg('line').attr('x1', 0).attr('x2', width).attr('y1', ay).attr('y2', ay).attr('class', 'axis-avg');
+			T.value = config.avg;
+			axis.asvg('text').aclass('ylabel-avg').attr('transform', 'translate({0},{1})'.format(width - config.pr - config.offsetX, ay - config.offsetY)).text(templateY(T));
+		}
+
+		for (var j = 0; j < len; j++)
+			g.asvg('path').attr('d', data[j].join(' ')).aclass('line' + (j + 1));
+
+		if (config.fill) {
+			for (var j = 0; j < len; j++)
+				fills.asvg('path').attr('d', fill[j].join(' ') + ' Z').aclass('line' + (j + 1) + 'fill').attr('opacity', config.fillopacity);
+		}
+	};
+});
 </script>

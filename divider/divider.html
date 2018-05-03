@@ -1,0 +1,50 @@
+<script type="text/html" settings>
+	<div class="padding">
+		<div class="m" data-jc="textbox__text">Text</div>
+		<div data-jc="multioptions" data-jc-path="?">
+			<script type="text/plain">
+				option('transparent', 'Transparent', false);
+			</script>
+		</div>
+	</div>
+</script>
+
+<style type="text/css">
+.ddivider { text-align: center; display: table; width: 100%; height: 100%; font-size: 80%; }
+.ddivider > div { display: table-cell; vertical-align: middle; }
+</style>
+
+<script type="text/html" body>
+	<div></div>
+</script>
+
+<!-- DEMO DATA -->
+<script type="text/json">
+</script>
+
+<script>
+
+exports.name = 'divider';
+exports.title = 'Divider';
+exports.icon = 'fa-minus';
+exports.author = 'Peter Širka';
+exports.group = 'Common';
+exports.options = { text: 'My divider' };
+exports.version = '1.0.0';
+
+exports.install = function(instance) {
+	instance.reconfigure = function() {
+		var options = instance.options;
+		instance.find('.text').html(options.text);
+		instance.transparent(!!options.transparent);
+	};
+
+	instance.make = function() {
+		instance.aclass('ddivider');
+		instance.append('<div class="text"></div>');
+		instance.reconfigure();
+	};
+
+	instance.on('options', instance.reconfigure);
+};
+</script>

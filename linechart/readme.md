@@ -1,4 +1,4 @@
-# Dashboard: Linechart
+# Dashboard: LineChart
 
 ## Installation
 

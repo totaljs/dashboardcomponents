@@ -6,14 +6,14 @@ This repository contains open-source Dashboard components.
 
 __Requirements__:
 
-- install Node.js platform +v6
-- install Total.js framework `$ npm install total.js`
+- install Node.js platform +v8
+- install Total.js framework as a global module `$ npm install -g total.js`
 
 ## Component maker
 
 - clone this repository
-- run `$ node maker.js`
-- open `http://127.0.0.1:8000` in your browser
+- run `$ bash maker.sh`
+- open `http://127.0.0.1:7999` in your browser
 
 ## Support
 
