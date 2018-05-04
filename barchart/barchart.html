@@ -36,11 +36,6 @@
 		<div data-jc="multioptions" data-jc-path="?">
 			<script type="text/plain">
 				option('title', 'Title', '');
-				option('type', 'Type', 'normal', ['normal', 'step', 'curves']);
-				option('fill', 'Fill', true);
-				option('axisX', 'Axis X', true);
-				option('axisY', 'Axis Y', true);
-				option('limit', 'Limit', 0);
 			</script>
 		</div>
 	</div>
@@ -66,7 +61,7 @@ exports.title = 'Bar chart';
 exports.icon = 'fa-bar-chart';
 exports.author = 'Peter Širka';
 exports.group = 'Analytics';
-exports.options = { instances: [], title: '@(Bar chart)' };
+exports.options = { instances: [], title: '@(Bar chart)', axisX: false, axisY: true };
 exports.version = '1.0.0';
 
 exports.install = function(instance) {
@@ -231,7 +226,7 @@ window.barchart_analytics = function(arr) {
 	return tmp;
 };
 
-COMPONENT('barchart', 'pl:20;pt:10;pb:25;prselected:0;axisX:true;axisY:true;paddingbars:5;limit:0;paddinggroup:10;radius:2;offsetX:10;offsetY:10;selected:{{ value | format(0) }};templateY:{{ value | format(0) }};templateX:{{ value }};height:0', function(self, config) {
+COMPONENT('barchart', 'pl:20;pt:10;pb:25;prselected:0;axisX:false;axisY:true;paddingbars:5;limit:0;paddinggroup:10;radius:2;offsetX:10;offsetY:10;selected:{{ value | format(0) }};templateY:{{ value | format(0) }};templateX:{{ value }};height:0', function(self, config) {
 
 	var svg, g, axis, selected;
 	var templateX, templateY, templateS;
