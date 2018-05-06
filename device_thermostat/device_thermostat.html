@@ -57,7 +57,7 @@
 <div style="height:100%">
 	<div class="tablecell">
 		<div class="content">
-			<div class="thermostat_wrapper">
+			<div class="thermostat_wrapper" data-jc-scope="?">
 				<div class="" data-jc="thermostat" data-jc-path="thermostat"></div>
 				<div data-jc="togglebutton" data-jc-path="on"></div>
 			</div>
@@ -78,7 +78,7 @@ exports.version = '1.0.0';
 
 exports.install = function(instance) {
 
-	var $name, $thermostat_wrapper;	
+	var $name, $thermostat_wrapper, thermostat_path;	
 
 	instance.on('resize', function(size) {
 		var s;
@@ -98,8 +98,8 @@ exports.install = function(instance) {
 
 		if (RELEASE && (!options.id || response.id !== options.id || (response.type !== 'status')))
 			return;
-
-		SET(instance.scope + '.thermostat', response.body);
+		
+		SET(thermostat_path, response.body);
 			
 	});
 
@@ -111,25 +111,24 @@ exports.install = function(instance) {
 		options.transparent && instance.element.parent().css('box-shadow', 'none');
 		instance.emit('resize', instance.size);
 		
-		instance.options.id && instance.send(instance.options.id, 'status');
+		instance.options.id && thermostat_path && instance.send(instance.options.id, 'status');
 	};
 
 	instance.make = function() {
 
 		instance.element.addClass('dashboardthermostat');
-
 		$name = instance.element.find('.name');
 		$thermostat_wrapper = instance.element.find('.thermostat_wrapper');
-
 		instance.reconfigure();
 
 		setTimeout(function(){
-			var thermostat = FIND('.{0}.thermostat'.format(instance.scope));
+			var thermostat = instance.element.FIND('thermostat');
+			thermostat_path = thermostat.path;
 			thermostat.on('options', function(){
-				console.log('SENDING setpoint OPTIONS', GET(instance.scope + '.thermostat.options.setpoint'));
-				instance.options.id && instance.send(instance.options.id, 'setpoint', GET(instance.scope + '.thermostat.options.setpoint'));
+				instance.options.id && instance.send(instance.options.id, 'setpoint', GET(thermostat_path + '.thermostat.options.setpoint'));
 			});
-		}, 500);
+			instance.send(instance.options.id, 'status');
+		}, 300);
 	};
 
 	instance.on('options', instance.reconfigure);
@@ -179,9 +178,9 @@ COMPONENT('thermostat', function(self, config){
 			$pointer.style.transition = 'transform 1.5s cubic-bezier(0.29, 1.48, 1, 0.96)'; //'transform 1.5s ease'
 			$pointer.setAttribute('transform', 'translate(170,25) rotate(' + (lastangle) + ' 0,145)');
 			var device = self.get();
+			console.log('self.path', self.path);
 			self.set(self.path + '.options.setpoint.' + device.daymode, setpoint);
 			self.emit('options');
-			console.log('SCOPE', self.scope);
 		});
 
 		self.element.on('mousemove', function(e){
