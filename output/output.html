@@ -63,8 +63,8 @@ exports.install = function(instance) {
 	};
 
 	instance.make = function() {
-		instance.element.aclass('dashboardoutput');
-		template = VIRTUALIZE(instance.element, { value: '.content' });
+		instance.aclass('dashboardoutput');
+		template = { value: instance.find('.content') };
 		instance.reconfigure();
 	};
 

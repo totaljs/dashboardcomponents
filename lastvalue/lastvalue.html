@@ -1,20 +1,19 @@
 <style>
-.widget { padding: 15px; }
-.lastvalue { background-color: white; color: black; }
-.lastvalue .tablecell { height: 55%; display: table; width: 100%; }
-.lastvalue .tablecell:first-child { height: 45%; }
-.lastvalue .content { display: table-cell; vertical-align: middle; text-align: center; }
-.lastvalue .icon { transition: all 0.3s; border-bottom: 1px solid #E0E0E0; }
-.lastvalue .value { letter-spacing: -1px; transition: all 0.3s; }
-.lastvalue .value b { font-size: 130%; }
-.themedark .lastvalue { background-color: #303030; color: white; }
-.themedark .lastvalue .icon { border-bottom-color: #404040; text-shadow: 1px 5px 5px rgba(0,0,0,0.1); }
+.dlastvalue { background-color: white; color: black; }
+.dlastvalue .tablecell { height: 55%; display: table; width: 100%; }
+.dlastvalue .tablecell:first-child { height: 45%; }
+.dlastvalue .content { display: table-cell; vertical-align: middle; text-align: center; }
+.dlastvalue .icon { transition: all 0.3s; border-bottom: 1px solid #E0E0E0; }
+.dlastvalue .value { letter-spacing: -1px; transition: all 0.3s; }
+.dlastvalue .value b { font-size: 130%; }
+.themedark .dlastvalue { background-color: #303030; color: white; }
+.themedark .dlastvalue .icon { border-bottom-color: #404040; text-shadow: 1px 5px 5px rgba(0,0,0,0.1); }
 </style>
 
 <script type="text/html" settings>
 	<div class="padding">
-		<div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="datasource:common.instances;empty:;if:n => n.component === 'dashboardanalytics';required:true">@(Flow instance)</div>
-		<div data-jc="multioptions" data-jc-path="?">
+		<div class="m" data-jc="dropdown__id__datasource:common.instances;empty:;if:n => n.component === 'dashboardanalytics';required:true">@(Flow instance)</div>
+		<div data-jc="multioptions__?">
 			<script type="text/plain">
 				option('title', 'Title', '');
 				option('color', 'Color', '#967ADC', 'color');
@@ -77,7 +76,6 @@ exports.install = function(instance) {
 	instance.on('data', function(response) {
 
 		var options = instance.options;
-
 		if (RELEASE && (!options.id || response.id !== options.id || response.type !== 'laststate'))
 			return;
 
@@ -121,8 +119,9 @@ exports.install = function(instance) {
 	};
 
 	instance.make = function() {
-		instance.element.aclass('lastvalue');
-		template = VIRTUALIZE(instance.element, { icon: '.icon', value: '.value', date: '.date' });
+		instance.element.aclass('dlastvalue');
+		template = { icon: instance.find('.icon'), value: instance.find('.value'), date: instance.find('.date') };
+
 		instance.reconfigure();
 
 		instance.event('click', 'button', function() {

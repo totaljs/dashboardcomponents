@@ -24,7 +24,7 @@
 <script type="text/html" body>
 <div style="height:100%">
 	<div class="tablecell">
-		<div class="content">			
+		<div class="content">
 			<div class="time"></div>
 			<div class="date"></div>
 		</div>
@@ -43,7 +43,7 @@ exports.version = '1.0.0';
 
 exports.install = function(instance) {
 
-	var template = null;	
+	var template = null;
 
 	instance.on('resize', function(size) {
 		var w = ((size.width > size.height ? size.height : size.width) / 100) * 70;
@@ -61,8 +61,8 @@ exports.install = function(instance) {
 	};
 
 	instance.make = function() {
-		instance.element.addClass('dashboardtime');
-		template = VIRTUALIZE(instance.element, { time: '.time', date: '.date' });
+		instance.aclass('dashboardtime');
+		template = { time: instance.find('.time'), date: instance.find('.date') });
 		instance.reconfigure();
 
 		setInterval(function(){
