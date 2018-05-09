@@ -88,6 +88,7 @@ exports.install = function(instance) {
 	var can = {};
 	var init = false;
 	var type = CACHE(instance.id) || 'days';
+	var title;
 
 	instance.on('data', function(response) {
 
@@ -102,7 +103,9 @@ exports.install = function(instance) {
 		response.body.months.reverse();
 		response.body.years.reverse();
 
+		title = response.name;
 		data[response.id] = response.body;
+		!instance.options.title && instance.find('header label').text(title);
 		setTimeout2(instance.id, instance.redraw, 500);
 	});
 
@@ -185,7 +188,7 @@ exports.install = function(instance) {
 			}, 100 * (i + 1), id);
 		}
 
-		instance.find('header label').text(options.title);
+		instance.find('header label').text(options.title || title);
 		init && instance.element.RECONFIGURE('linechart', instance.getConfig());
 	};
 
