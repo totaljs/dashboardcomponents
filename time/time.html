@@ -62,15 +62,13 @@ exports.install = function(instance) {
 
 	instance.make = function() {
 		instance.aclass('dashboardtime');
-		template = { time: instance.find('.time'), date: instance.find('.date') });
+		template = { time: instance.find('.time'), date: instance.find('.date') };
 		instance.reconfigure();
-
 		setInterval(function(){
 			template.time.html(new Date().format(instance.options.formattime || 'HH:mm'));
 			template.date.html(new Date().format(instance.options.formatdate || 'dd.MM.yyyy'));
 		}, 1000);
 	};
-
 	instance.on('options', instance.reconfigure);
 };
 </script>
