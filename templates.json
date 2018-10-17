@@ -1,27 +1,27 @@
 [{
 	"name": "Analytics",
 	"items": [
-		"https://rawgit.com/totaljs/dashboardcomponents/master/linechart/linechart.html",
-		"https://rawgit.com/totaljs/dashboardcomponents/master/barchart/barchart.html",
-		"https://rawgit.com/totaljs/dashboardcomponents/master/lastvalue/lastvalue.html",
-		"https://rawgit.com/totaljs/dashboardcomponents/master/output/output.html"
+		"https://cdn.totaljs.com/dashboard/linechart.html",
+		"https://cdn.totaljs.com/dashboard/barchart.html",
+		"https://cdn.totaljs.com/dashboard/lastvalue.html",
+		"https://cdn.totaljs.com/dashboard/output.html"
 	]
 },{
 	"name": "Weather",
 	"items": [
-		"https://rawgit.com/totaljs/dashboardcomponents/master/weather/weather.html"
+		"https://cdn.totaljs.com/dashboard/weather.html"
 	]
 },{
 	"name": "Miscellaneous",
 	"items": [
-		"https://rawgit.com/totaljs/dashboardcomponents/master/time/time.html"
+		"https://cdn.totaljs.com/dashboard/time.html"
 	]
 },{
 	"name": "Devices",
 	"items": [
-		"https://rawgit.com/totaljs/dashboardcomponents/master/device_switch/device_switch.html",
-		"https://rawgit.com/totaljs/dashboardcomponents/master/device_outlet/device_outlet.html",
-		"https://rawgit.com/totaljs/dashboardcomponents/master/device_light/device_light.html",
-		"https://rawgit.com/totaljs/dashboardcomponents/master/device_thermostat/device_thermostat.html"
+		"https://cdn.totaljs.com/dashboard/device_switch.html",
+		"https://cdn.totaljs.com/dashboard/device_outlet.html",
+		"https://cdn.totaljs.com/dashboard/device_light.html",
+		"https://cdn.totaljs.com/dashboard/device_thermostat.html"
 	]
 }]
