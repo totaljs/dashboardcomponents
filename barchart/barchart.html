@@ -98,6 +98,7 @@ exports.install = function(instance) {
 		var count = (size.width / 60) >> 0;
 		var response = [];
 		var legend = instance.find('.legend').empty();
+		var offset = new Date().getTimezoneOffset() + ' minutes';
 
 		if (DEBUG) {
 			for (var i = 0; i < count; i++) {
@@ -114,21 +115,21 @@ exports.install = function(instance) {
 				if (type === 'hours') {
 					for (var i = count; i >= 0; i--) {
 						var dt = new Date().add('-' + i + ' hours');
-						var date = +dt.format('yyyyMMddHH');
+						var date = +dt.add(offset).format('yyyyMMddHH');
 						var item = arr ? arr.hours.findItem('id', date) : null;
 						output.push({ x: dt.format('HH') + ':00', y: item ? item.value : 0 });
 					}
 				} else if (type === 'months') {
 					for (var i = count; i >= 0; i--) {
 						var dt = new Date().add('-' + i + ' months');
-						var date = +dt.format('yyyyMM');
+						var date = +dt.add(offset).format('yyyyMM');
 						var item = arr ? arr.months.findItem('id', date) : null;
 						output.push({ x: dt.format('MMM'), y: item ? item.value : 0 });
 					}
 				} else if (type === 'years') {
 					for (var i = count; i >= 0; i--) {
 						var dt = new Date().add('-' + i + ' years');
-						var date = +dt.format('yyyy');
+						var date = +dt.add(offset).format('yyyy');
 						var item = arr ? arr.years.findItem('id', date) : null;
 						output.push({ x: dt.format('yyyy'), y: item ? item.value : 0 });
 					}
@@ -136,7 +137,7 @@ exports.install = function(instance) {
 					// days
 					for (var i = count; i >= 0; i--) {
 						var dt = new Date().add('-' + i + ' days');
-						var date = +dt.format('yyyyMMdd');
+						var date = +dt.add(offset).format('yyyyMMdd');
 						var item = arr ? arr.days.findItem('id', date) : null;
 						output.push({ x: dt.format('dd.MM.'), y: item ? item.value : 0 });
 					}
@@ -237,6 +238,7 @@ COMPONENT('barchart', 'pl:20;pt:10;pb:25;prselected:0;axisX:false;axisY:true;pad
 
 	self.readonly();
 	self.make = function() {
+
 		self.aclass('ui-barchart');
 		self.empty().append('<svg></svg>');
 		svg = self.find('svg');
