@@ -7,11 +7,6 @@
 		"https://cdn.totaljs.com/dashboard/output.html"
 	]
 },{
-	"name": "Weather",
-	"items": [
-		"https://cdn.totaljs.com/dashboard/weather.html"
-	]
-},{
 	"name": "Miscellaneous",
 	"items": [
 		"https://cdn.totaljs.com/dashboard/time.html"
