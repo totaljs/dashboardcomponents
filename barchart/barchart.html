@@ -101,6 +101,7 @@ exports.install = function(instance) {
 		var offset = new Date().getTimezoneOffset() + ' minutes';
 
 		if (DEBUG) {
+			var output = [];
 			for (var i = 0; i < count; i++) {
 				var item = data.days[i];
 				output.push({ x: item.day, y: item.value });
