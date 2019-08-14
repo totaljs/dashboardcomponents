@@ -14,6 +14,8 @@ __Requirements__:
 - clone this repository
 - run `$ bash maker.sh`
 - open `http://127.0.0.1:7999` in your browser
+- click on the `output` folder in the browser
+- then click on the `test.html`
 
 ## Support
 
