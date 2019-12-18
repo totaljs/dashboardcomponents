@@ -1,31 +1,29 @@
 <style>
-.dlastvalue { background-color: white; color: black; }
-.dlastvalue .tablecell { height: 55%; display: table; width: 100%; }
-.dlastvalue .tablecell:first-child { height: 45%; }
-.dlastvalue .content { display: table-cell; vertical-align: middle; text-align: center; }
-.dlastvalue .icon { transition: all 0.3s; border-bottom: 1px solid #E0E0E0; }
-.dlastvalue .value { letter-spacing: -1px; transition: all 0.3s; }
-.dlastvalue .value b { font-size: 130%; }
-.themedark .dlastvalue { background-color: #303030; color: white; }
-.themedark .dlastvalue .icon { border-bottom-color: #404040; text-shadow: 1px 5px 5px rgba(0,0,0,0.1); }
+	.dlastvalue { background-color:white; color:black }
+	.dlastvalue .tablecell { height:55%; display:table; width:100% }
+	.dlastvalue .tablecell:first-child { height:45% }
+	.dlastvalue .content { display:table-cell; vertical-align:middle; text-align:center }
+	.dlastvalue .icon { transition:all 0.3s; border-bottom:1px solid #E0E0E0 }
+	.dlastvalue .value { letter-spacing:-1px; transition:all 0.3s }
+	.dlastvalue .value b { font-size:130% }
+	.themedark .dlastvalue { background-color:#303030; color:white }
+	.themedark .dlastvalue .icon { border-bottom-color:#404040; text-shadow:1px 5px 5px rgba(0,0,0,0.1) }
 </style>
-
 <script type="text/html" settings>
-	<div class="padding">
-		<div class="m" data-jc="dropdown__id__datasource:common.instances;empty:;if:n => n.component === 'dashboardanalytics';required:true">@(Flow instance)</div>
+    <div class="padding">
+		<div class="m" data-jc="dropdown__?.id__datasource:common.instances;empty:;if:n => n.component === 'dashboardanalytics';required:true">@(Flow instance)</div>
 		<div data-jc="multioptions__?">
 			<script type="text/plain">
 				option('title', 'Title', '');
 				option('color', 'Color', '#967ADC', 'color');
 				option('dateformat', 'Date format', 'dd.MM', ['HH:mm', 'dd', 'ddd', 'dd.MM', 'dd.MM.yyyy', 'MMMM', 'MM.yyyy']);
 			</script>
-		</div>
-		<div class="m" data-jc="fontawesomebox__icon__search:@(Search icon)"></div>
-	</div>
+        </div>
+        <div class="m" data-jc="fontawesomebox__?.icon__search:@(Search icon)"></div>
+    </div>
 </script>
-
 <script type="text/html" body>
-	<header>
+    <header>
 		<button class="hidden-xs" name="settings"><i class="fa fa-cog"></i></button>
 		<button class="hidden-xs" name="lastvalue" title="@(Last value)"><i class="fa fa-history"></i></button>
 		<button class="hidden-xs" name="processed" title="@(Processed value)"><i class="fa fa-database"></i></button>
@@ -33,9 +31,7 @@
 	</header>
 	<div class="chart">
 		<div class="tablecell icon">
-			<div class="content">
-				<i class="fa"></i>
-			</div>
+			<div class="content"><i class="fa"></i></div>
 		</div>
 		<div class="tablecell">
 			<div class="content">
@@ -45,19 +41,15 @@
 		</div>
 	</div>
 </script>
-</script>
-
-<!-- DEMO DATA -->
 <script type="text/json">
 {
-	"format": "{0} ms",
-	"dateformat": "dd.MM",
-	"datetime": "2017-07-06T09:01:21.253Z",
-	"value": 24,
-	"raw": 22
+    "format": "{0} ms",
+    "dateformat": "dd.MM",
+    "datetime": "2017-07-06T09:01:21.253Z",
+    "value": 24,
+    "raw": 22
 }
 </script>
-
 <script>
 exports.name = 'lastvalue';
 exports.title = 'Last value';
@@ -66,88 +58,70 @@ exports.author = 'Peter Širka';
 exports.group = 'Analytics';
 exports.options = { id: null, title: '', dateformat: 'HH:mm', icon: 'thermometer' };
 exports.version = '1.0.0';
-
 exports.install = function(instance) {
-
-	var template = null;
-	var type = CACHE(instance.id) || 'lastvalue';
-	var data, title;
-
-	instance.on('data', function(response) {
-
-		var options = instance.options;
-		if (RELEASE && (!options.id || response.id !== options.id || response.type !== 'laststate'))
-			return;
-
-		data = response.body;
-		title = response.name;
-		data.value && instance.redraw();
-		!options.title && instance.find('header label').text(title);
-	});
-
-	instance.redraw = function() {
-		if (data) {
-			var options = instance.options;
-			template.value.html(data.format.replace('{0}', '<b>{0}</b>').format((type === 'lastvalue' ? data.raw : data.value).format(data.decimals)));
-			template.date.html(data.datetime.format(options.dateformat));
-		}
-	};
-
-	var resize = function() {
-		var size = instance.size;
-		var h = (size.height / 100) * 40;
-		template.icon.css('font-size', ((h / 100) * 60) + 'px');
-		h = (size.height / 100) * 50;
-		template.value.css('font-size', ((h / 100) * 20) + 'px');
-		template.date.css('font-size', ((h / 100) * 14) + 'px');
-		instance.find('.chart').css('height', instance.size.height - instance.find('header').height());
-	};
-
-	instance.on('resize', resize);
-	instance.reconfigure = function() {
-
-		var options = instance.options;
-		var header = instance.find('header');
-		template.icon.find('.fa').rclass().aclass('fa fa-' + options.icon);
-		header.find('label').text(options.title || title);
-
-		instance.css('color', options.color);
-
-		// Refresh data
-		options.id && instance.send(options.id, 'laststate');
-		resize();
-	};
-
-	instance.make = function() {
-		instance.element.aclass('dlastvalue');
-		template = { icon: instance.find('.icon'), value: instance.find('.value'), date: instance.find('.date') };
-
-		instance.reconfigure();
-
-		instance.event('click', 'button', function() {
-			var btn = $(this);
-			var name = btn.attr('name');
-			switch (name) {
-				case 'settings':
-					instance.settings();
-					break;
-				case 'legend':
-					instance.find('.legend').tclass('hidden');
-					break;
-				case 'processed':
-				case 'lastvalue':
-					type = name;
-					instance.redraw();
-					instance.find('header button.selected').rclass('selected');
-					btn.aclass('selected');
-					CACHE(instance.id, type, '1 month');
-					break;
-			}
-		});
-
-		instance.find('button[name="{0}"]'.format(type)).aclass('selected');
-	};
-
-	instance.on('options', instance.reconfigure);
+    var template = null;
+    var type = CACHE(instance.id) || 'lastvalue';
+    var data, title;
+    instance.on('data', function(response) {
+        var options = instance.options;
+        if (RELEASE && (!options.id || response.id !== options.id || response.type !== 'laststate')) return;
+        data = response.body;
+        title = response.name;
+        data.value && instance.redraw();
+        !options.title && instance.find('header label').text(title)
+    });
+    instance.redraw = function() {
+        if (data) {
+            var options = instance.options;
+            template.value.html(data.format.replace('{0}', '<b>{0}</b>').format((type === 'lastvalue' ? data.raw : data.value).format(data.decimals)));
+            template.date.html(data.datetime.format(options.dateformat))
+        }
+    };
+    var resize = function() {
+        var size = instance.size;
+        var h = (size.height / 100) * 40;
+        template.icon.css('font-size', ((h / 100) * 60) + 'px');
+        h = (size.height / 100) * 50;
+        template.value.css('font-size', ((h / 100) * 20) + 'px');
+        template.date.css('font-size', ((h / 100) * 14) + 'px');
+        instance.find('.chart').css('height', instance.size.height - instance.find('header').height())
+    };
+    instance.on('resize', resize);
+    instance.reconfigure = function() {
+        var options = instance.options;
+        var header = instance.find('header');
+        template.icon.find('.fa').rclass().aclass('fa fa-' + options.icon);
+        header.find('label').text(options.title || title);
+        instance.css('color', options.color);
+        options.id && instance.send(options.id, 'laststate');
+        resize()
+    };
+    instance.make = function() {
+        instance.element.aclass('dlastvalue');
+        template = { icon: instance.find('.icon'), value: instance.find('.value'), date: instance.find('.date') };
+        instance.reconfigure();
+        instance.event('click', 'button', function() {
+            var btn = $(this);
+            var name = btn.attr('name');
+            switch (name) {
+                case 'settings':
+                    instance.settings();
+                    break;
+                case 'legend':
+                    instance.find('.legend').tclass('hidden');
+                    break;
+                case 'processed':
+                case 'lastvalue':
+                    type = name;
+                    instance.redraw();
+                    instance.find('header button.selected').rclass('selected');
+                    btn.aclass('selected');
+                    CACHE(instance.id, type, '1 month');
+                    break
+            }
+        });
+        instance.find('button[name="{0}"]'.format(type)).aclass('selected')
+    };
+    instance.on('options', instance.reconfigure)
 };
 </script>
