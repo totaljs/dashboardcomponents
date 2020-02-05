@@ -10,12 +10,12 @@
 
 <script type="text/html" settings>
 	<div class="padding">
-		<div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="required:true;datasource:common.instances;if:n => n.component === 'device_switch';empty:">@(Flow instance)</div>
-		<div class="m" data-jc="textbox" data-jc-path="name" data-jc-config="placeholder:HH:mm">@(Name)</div>
-		<div class="m" data-jc="textbox" data-jc-path="icon" data-jc-config="placeholder:">@(Icon for push button (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a>))</div>
-		<div class="m" data-jc="textbox" data-jc-path="iconoff" data-jc-config="placeholder:">@(Icon for switch when off (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a>))</div>
-		<div class="m" data-jc="textbox" data-jc-path="iconon" data-jc-config="placeholder:">@(Icon for switch when on (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a>))</div>
-		<div data-jc="multioptions" data-jc-path="?">
+		<div class="m" data---="dropdown__id__required:true;datasource:common.instances;if:n => n.component === 'device_switch';empty:">@(Flow instance)</div>
+		<div class="m" data---="textbox__name__placeholder:HH:mm">@(Name)</div>
+		<div class="m" data---="textbox__icon__placeholder:">@(Icon for push button (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a>))</div>
+		<div class="m" data---="textbox__iconoff__placeholder:">@(Icon for switch when off (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a>))</div>
+		<div class="m" data---="textbox__iconon__placeholder:">@(Icon for switch when on (<a href="http://fontawesome.io/icons/" target="_blank">FontAwesome</a>))</div>
+		<div data---="multioptions__?">
 			<script type="text/plain">
 				option('background', 'Background Color', '#967ADC', 'Color');
 			</script>

@@ -1,12 +1,12 @@
 <style>
-.dashboardoutput .tablecell { height: 100%; display: table; width: 100%; color: white; }
-.dashboardoutput .content { display: table-cell; vertical-align: middle; text-align: center; }
+	.dashboardoutput .tablecell{height:100%;display:table;width:100%;color:white}
+	.dashboardoutput .content{display:table-cell;vertical-align:middle;text-align:center}
 </style>
 
 <script type="text/html" settings>
 	<div class="padding">
-		<div class="m" data-jc="dropdown" data-jc-path="id" data-jc-config="datasource:common.instances;empty:;if:n => n.component === 'dashboardoutput';required:true">@(Flow instance)</div>
-		<div data-jc="multioptions" data-jc-path="?">
+		<div data---="dropdown__?.id__datasource:common.instances;empty:;if:n => n.component === 'dashboardoutput';required:true" class="m">@(Flow instance)</div>
+		<div data---="multioptions__?">
 			<script type="text/plain">
 				option('background', 'Background Color', '#967ADC', 'Color');
 			</script>
@@ -15,16 +15,11 @@
 </script>
 
 <script type="text/html" body>
-<div style="height:100%">
-	<div class="tablecell">
-		<div class="content">no data</div>
+	<div style="height:100%">
+		<div class="tablecell">
+			<div class="content">...</div>
+		</div>
 	</div>
-</div>
-</script>
-
-<!-- DEMO DATA -->
-<script type="text/json">
-"<b>BOLD</b> VALUE"
 </script>
 
 <script>
@@ -35,7 +30,6 @@ exports.author = 'Peter Širka';
 exports.group = 'Analytics';
 exports.options = { id: null, background: '#967ADC' };
 exports.version = '1.0.0';
-
 exports.install = function(instance) {
 
 	var template = null;
@@ -56,8 +50,6 @@ exports.install = function(instance) {
 	instance.reconfigure = function() {
 		var options = instance.options;
 		instance.element.css('background-color', options.background);
-
-		// Refresh data
 		options.id && instance.send(options.id, 'laststate');
 		instance.emit('resize', instance.size);
 	};
